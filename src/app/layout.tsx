@@ -27,13 +27,13 @@ const inter = localFont({
 
 export const metadata: Metadata = {
   title: {
-    default: `${SITE_NAME} — Polkadot Security Intelligence`,
+    default: `${SITE_NAME} — Security Tooling for Blockchain`,
     template: `%s | ${SITE_NAME}`,
   },
   description: SITE_DESCRIPTION,
   metadataBase: new URL(`https://${SITE_DOMAIN}`),
   openGraph: {
-    title: `${SITE_NAME} — Polkadot Security Intelligence`,
+    title: `${SITE_NAME} — Security Tooling for Blockchain`,
     description: SITE_DESCRIPTION,
     url: `https://${SITE_DOMAIN}`,
     siteName: SITE_NAME,

@@ -7,7 +7,7 @@ import { ResearchFilters } from './filters';
 
 export const metadata: Metadata = {
   title: 'Research',
-  description: 'Security research, post-mortems, and vulnerability analysis for the Polkadot ecosystem.',
+  description: 'Case studies, post-mortems, and vulnerability analysis produced with HubSec tooling.',
 };
 
 export default async function ResearchPage() {
@@ -26,7 +26,7 @@ export default async function ResearchPage() {
           Research
         </h1>
         <p className="text-sm mb-10" style={{ color: 'var(--color-text-tertiary)' }}>
-          Post-mortems and vulnerability analysis for the Polkadot ecosystem.
+          Case studies and vulnerability analysis produced with HubSec tooling.
         </p>
 
         <ResearchFilters />

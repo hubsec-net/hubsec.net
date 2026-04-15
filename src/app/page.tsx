@@ -6,7 +6,6 @@ import { formatDate } from '@/lib/utils';
 export default async function HomePage() {
   const reports = await getReports();
   const latestReport = reports[0];
-  const olderReports = reports.slice(1, 4);
 
   return (
     <>
@@ -33,16 +32,156 @@ export default async function HomePage() {
               lineHeight: 'var(--leading-relaxed)',
             }}
           >
-            Independent security research for the Polkadot ecosystem.
-            Post-mortems, vulnerability analysis, and on-chain forensics.
+            Security tooling for blockchain teams and security professionals.
+            Scan, investigate, report.
           </p>
         </div>
       </section>
 
-      {/* ── FEATURED REPORT ── */}
+      {/* ── WHAT WE BUILD ── */}
+      <section className="py-16">
+        <div className="mx-auto max-w-6xl px-4 md:px-6">
+          <div className="grid md:grid-cols-3 gap-6">
+            <Link
+              href="/sentinel"
+              className="block rounded-lg p-6"
+              style={{
+                border: '1px solid var(--color-border-default)',
+                transition: 'border-color 0.15s ease',
+              }}
+            >
+              <h3
+                className="text-sm font-semibold mb-3"
+                style={{
+                  fontFamily: 'var(--font-jetbrains), monospace',
+                  color: 'var(--color-text-primary)',
+                }}
+              >
+                Sentinel
+              </h3>
+              <p
+                className="text-sm mb-4"
+                style={{
+                  color: 'var(--color-text-secondary)',
+                  lineHeight: 'var(--leading-relaxed)',
+                }}
+              >
+                Automated vulnerability scanner for Substrate runtimes, ink!
+                contracts, and Solidity on PolkaVM. CI/CD ready.
+              </p>
+              <span
+                className="text-xs"
+                style={{
+                  color: 'var(--color-text-tertiary)',
+                  fontFamily: 'var(--font-jetbrains), monospace',
+                }}
+              >
+                Learn more &rarr;
+              </span>
+            </Link>
+
+            <Link
+              href="/forensics"
+              className="block rounded-lg p-6"
+              style={{
+                border: '1px solid var(--color-border-default)',
+                transition: 'border-color 0.15s ease',
+              }}
+            >
+              <h3
+                className="text-sm font-semibold mb-3"
+                style={{
+                  fontFamily: 'var(--font-jetbrains), monospace',
+                  color: 'var(--color-text-primary)',
+                }}
+              >
+                Forensics
+              </h3>
+              <p
+                className="text-sm mb-4"
+                style={{
+                  color: 'var(--color-text-secondary)',
+                  lineHeight: 'var(--leading-relaxed)',
+                }}
+              >
+                On-chain investigation and fund tracing toolkit for incident
+                response and threat intelligence.
+              </p>
+              <span
+                className="text-xs"
+                style={{
+                  color: 'var(--color-text-tertiary)',
+                  fontFamily: 'var(--font-jetbrains), monospace',
+                }}
+              >
+                Learn more &rarr;
+              </span>
+            </Link>
+
+            <Link
+              href="/research"
+              className="block rounded-lg p-6"
+              style={{
+                border: '1px solid var(--color-border-default)',
+                transition: 'border-color 0.15s ease',
+              }}
+            >
+              <h3
+                className="text-sm font-semibold mb-3"
+                style={{
+                  fontFamily: 'var(--font-jetbrains), monospace',
+                  color: 'var(--color-text-primary)',
+                }}
+              >
+                Reports
+              </h3>
+              <p
+                className="text-sm mb-4"
+                style={{
+                  color: 'var(--color-text-secondary)',
+                  lineHeight: 'var(--leading-relaxed)',
+                }}
+              >
+                Professional security report generation from scan results and
+                forensic investigations. PDF, Markdown, SARIF.
+              </p>
+              <span
+                className="text-xs"
+                style={{
+                  color: 'var(--color-text-tertiary)',
+                  fontFamily: 'var(--font-jetbrains), monospace',
+                }}
+              >
+                Learn more &rarr;
+              </span>
+            </Link>
+          </div>
+        </div>
+      </section>
+
+      {/* ── CASE STUDIES ── */}
       {latestReport && (
         <section className="pb-20">
           <div className="mx-auto max-w-6xl px-4 md:px-6">
+            <h2
+              className="text-lg font-semibold mb-2"
+              style={{
+                fontFamily: 'var(--font-jetbrains), monospace',
+                color: 'var(--color-text-primary)',
+              }}
+            >
+              Case Studies
+            </h2>
+            <p
+              className="text-sm mb-8"
+              style={{
+                color: 'var(--color-text-tertiary)',
+                lineHeight: 'var(--leading-relaxed)',
+              }}
+            >
+              Real-world analysis produced using HubSec Forensics methodology,
+              demonstrating how our tools reconstruct and analyze security incidents.
+            </p>
             <Link
               href={`/research/${latestReport.slug}`}
               className="block rounded-lg p-8 md:p-10 group"
@@ -64,18 +203,8 @@ export default async function HomePage() {
                   {formatDate(latestReport.date)}
                 </span>
                 <Badge level={latestReport.classification} />
-                <span
-                  className="text-xs px-2 py-0.5 rounded"
-                  style={{
-                    color: 'var(--color-accent-warm)',
-                    backgroundColor: 'var(--color-accent-warm-muted)',
-                    fontFamily: 'var(--font-jetbrains), monospace',
-                  }}
-                >
-                  Latest
-                </span>
               </div>
-              <h2
+              <h3
                 className="text-xl md:text-2xl font-bold mb-3"
                 style={{
                   fontFamily: 'var(--font-jetbrains), monospace',
@@ -83,7 +212,19 @@ export default async function HomePage() {
                 }}
               >
                 {latestReport.title}
-              </h2>
+              </h3>
+              <p
+                className="text-sm mb-3"
+                style={{
+                  color: 'var(--color-text-tertiary)',
+                  lineHeight: 'var(--leading-relaxed)',
+                  fontStyle: 'italic',
+                }}
+              >
+                This analysis was produced using HubSec Forensics methodology,
+                demonstrating how our tools reconstruct and analyze security
+                incidents.
+              </p>
               <p
                 className="text-base max-w-2xl mb-6"
                 style={{
@@ -106,171 +247,6 @@ export default async function HomePage() {
           </div>
         </section>
       )}
-
-      {/* ── WHAT WE DO — asymmetric layout ── */}
-      <section className="py-16">
-        <div className="mx-auto max-w-6xl px-4 md:px-6">
-          {/* Research — full width, prominent */}
-          <div className="mb-8">
-            <Link
-              href="/research"
-              className="block rounded-lg p-6 md:p-8"
-              style={{
-                border: '1px solid var(--color-border-default)',
-                backgroundColor: 'var(--color-bg-secondary)',
-                transition: 'border-color 0.15s ease',
-              }}
-            >
-              <div className="flex flex-col md:flex-row md:items-start md:justify-between gap-6">
-                <div className="flex-1">
-                  <h3
-                    className="text-lg font-semibold mb-3"
-                    style={{
-                      fontFamily: 'var(--font-jetbrains), monospace',
-                      color: 'var(--color-text-primary)',
-                    }}
-                  >
-                    Research
-                  </h3>
-                  <p
-                    className="text-sm max-w-md"
-                    style={{
-                      color: 'var(--color-text-secondary)',
-                      lineHeight: 'var(--leading-relaxed)',
-                    }}
-                  >
-                    We publish post-mortem analysis and vulnerability research.
-                    Every report includes technical root cause, fund flow tracing,
-                    and actionable detection rules.
-                  </p>
-                </div>
-                {olderReports.length > 0 && (
-                  <div className="flex flex-col gap-2 md:text-right shrink-0">
-                    {olderReports.map((r) => (
-                      <span
-                        key={r.slug}
-                        className="text-xs"
-                        style={{
-                          color: 'var(--color-text-tertiary)',
-                          fontFamily: 'var(--font-jetbrains), monospace',
-                        }}
-                      >
-                        {r.title}
-                      </span>
-                    ))}
-                    <span
-                      className="text-xs mt-1"
-                      style={{
-                        color: 'var(--color-accent-primary)',
-                        fontFamily: 'var(--font-jetbrains), monospace',
-                      }}
-                    >
-                      View all &rarr;
-                    </span>
-                  </div>
-                )}
-              </div>
-            </Link>
-          </div>
-
-          {/* Sentinel + Forensics — side by side, compact */}
-          <div className="grid md:grid-cols-2 gap-6">
-            <Link
-              href="/sentinel"
-              className="block rounded-lg p-6"
-              style={{
-                border: '1px solid var(--color-border-default)',
-                transition: 'border-color 0.15s ease',
-              }}
-            >
-              <div className="flex items-center gap-2 mb-3">
-                <h3
-                  className="text-sm font-semibold"
-                  style={{
-                    fontFamily: 'var(--font-jetbrains), monospace',
-                    color: 'var(--color-text-primary)',
-                  }}
-                >
-                  Sentinel
-                </h3>
-                <span
-                  className="text-xs px-1.5 py-0.5 rounded"
-                  style={{
-                    color: 'var(--color-accent-warm)',
-                    backgroundColor: 'var(--color-accent-warm-muted)',
-                    fontFamily: 'var(--font-jetbrains), monospace',
-                  }}
-                >
-                  In Dev
-                </span>
-              </div>
-              <p
-                className="text-sm mb-4"
-                style={{ color: 'var(--color-text-secondary)' }}
-              >
-                Automated vulnerability scanning for ink!, Solidity, FRAME pallets,
-                and deployed WASM bytecode.
-              </p>
-              <span
-                className="text-xs"
-                style={{
-                  color: 'var(--color-text-tertiary)',
-                  fontFamily: 'var(--font-jetbrains), monospace',
-                }}
-              >
-                Learn more &rarr;
-              </span>
-            </Link>
-
-            <Link
-              href="/forensics"
-              className="block rounded-lg p-6"
-              style={{
-                border: '1px solid var(--color-border-default)',
-                transition: 'border-color 0.15s ease',
-              }}
-            >
-              <div className="flex items-center gap-2 mb-3">
-                <h3
-                  className="text-sm font-semibold"
-                  style={{
-                    fontFamily: 'var(--font-jetbrains), monospace',
-                    color: 'var(--color-text-primary)',
-                  }}
-                >
-                  Forensics
-                </h3>
-                <span
-                  className="text-xs px-1.5 py-0.5 rounded"
-                  style={{
-                    color: 'var(--color-accent-warm)',
-                    backgroundColor: 'var(--color-accent-warm-muted)',
-                    fontFamily: 'var(--font-jetbrains), monospace',
-                  }}
-                >
-                  In Dev
-                </span>
-              </div>
-              <p
-                className="text-sm mb-4"
-                style={{ color: 'var(--color-text-secondary)' }}
-              >
-                On-chain investigation tools. Transaction tracing, wallet profiling,
-                and cross-chain fund flow analysis.
-              </p>
-              <span
-                className="text-xs"
-                style={{
-                  color: 'var(--color-text-tertiary)',
-                  fontFamily: 'var(--font-jetbrains), monospace',
-                }}
-              >
-                Learn more &rarr;
-              </span>
-            </Link>
-          </div>
-        </div>
-      </section>
     </>
   );
 }
