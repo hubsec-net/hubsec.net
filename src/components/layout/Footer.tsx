@@ -21,7 +21,7 @@ export function Footer() {
               HubSec
             </span>
             <p className="text-sm max-w-md" style={{ color: 'var(--color-text-tertiary)' }}>
-              Independent security research for the Polkadot ecosystem.
+              Security tools for blockchain teams and security professionals.
             </p>
             <p
               className="text-xs font-mono break-all"

@@ -3,7 +3,7 @@ import { DISCLAIMER, PGP_FINGERPRINT } from '@/lib/constants';
 
 export const metadata: Metadata = {
   title: 'About',
-  description: 'HubSec is an independent blockchain security research firm specializing in the Polkadot ecosystem.',
+  description: 'HubSec builds security tools for blockchain teams and security professionals.',
 };
 
 export default function AboutPage() {
@@ -20,26 +20,25 @@ export default function AboutPage() {
           About
         </h1>
 
-        {/* Narrative — not a mission statement */}
+        {/* Narrative */}
         <div className="space-y-5 mb-16">
           <p style={{ color: 'var(--color-text-secondary)', lineHeight: 'var(--leading-relaxed)' }}>
-            HubSec started from investigating bridge incidents in the Polkadot ecosystem.
-            We kept finding the same patterns — insufficient proof validation, shallow
-            authorization checks, missing boundary conditions on leaf indices. Different
-            protocols, same classes of bugs.
+            HubSec builds security tools for blockchain teams and security professionals.
+            Our tools are used by developers to find vulnerabilities before deployment,
+            by security analysts to investigate incidents, and by auditors to generate
+            professional reports.
           </p>
           <p style={{ color: 'var(--color-text-secondary)', lineHeight: 'var(--leading-relaxed)' }}>
-            We publish our analysis because the ecosystem gets safer when post-mortems are
-            thorough, public, and specific enough to act on. A report that says &ldquo;the
-            bridge was exploited&rdquo; doesn&apos;t help anyone. A report that traces the
-            exact call path, identifies the missing check, and shows how to detect similar
-            bugs before deployment — that&apos;s useful.
+            We started from investigating bridge incidents in the Polkadot ecosystem and
+            kept finding the same patterns — insufficient proof validation, shallow
+            authorization checks, missing boundary conditions. Different protocols, same
+            classes of bugs. So we built tooling to catch them systematically.
           </p>
           <p style={{ color: 'var(--color-text-secondary)', lineHeight: 'var(--leading-relaxed)' }}>
-            Every incident we investigate feeds back into our detection tooling. The
-            Hyperbridge analysis produced three new Sentinel rules. The vulnerability
-            taxonomy now covers 70+ classes across 10 attack surfaces. The goal is
-            systematic: turn incident response into prevention infrastructure.
+            Every incident we analyze feeds back into our detection rules. The Hyperbridge
+            case study produced three new Sentinel rules. The vulnerability taxonomy now
+            covers 70+ classes across 10 attack surfaces. The goal is systematic: turn
+            incident patterns into prevention infrastructure that anyone can run.
           </p>
         </div>
 
@@ -55,9 +54,9 @@ export default function AboutPage() {
             Focus
           </h2>
           <p className="text-sm mb-5" style={{ color: 'var(--color-text-secondary)', lineHeight: 'var(--leading-relaxed)' }}>
-            Polkadot-specific. We don&apos;t cover every chain — we go deep on
-            Substrate runtimes, FRAME pallets, ink! contracts, XCM messaging,
-            and the bridge infrastructure that connects it all.
+            Our tools go deep on the Polkadot stack — Substrate runtimes, FRAME
+            pallets, ink! contracts, XCM messaging, and the bridge infrastructure
+            that connects it all.
           </p>
           <div className="flex flex-wrap gap-2">
             {[
@@ -92,7 +91,7 @@ export default function AboutPage() {
         >
           <p className="text-sm" style={{ color: 'var(--color-text-secondary)', lineHeight: 'var(--leading-relaxed)' }}>
             Not affiliated with Parity Technologies, Web3 Foundation, or any
-            protocol team we analyze. Our research is independent.
+            protocol team. Our tools and analysis are independent.
           </p>
           <p
             className="text-xs mt-3"
