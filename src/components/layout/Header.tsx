@@ -1,12 +1,12 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, Suspense } from 'react';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import { Menu, X } from 'lucide-react';
 import { NAV_LINKS } from '@/lib/constants';
 
-export function Header() {
+function HeaderNav() {
   const [mobileOpen, setMobileOpen] = useState(false);
   const pathname = usePathname();
 
@@ -28,7 +28,7 @@ export function Header() {
   }, [mobileOpen]);
 
   return (
-    <header className="border-b relative z-50" style={{ borderColor: 'var(--color-border-subtle)' }}>
+    <>
       <nav className="mx-auto max-w-6xl px-4 md:px-6 py-4 flex items-center justify-between">
         <Link
           href="/"
@@ -69,15 +69,23 @@ export function Header() {
           onClick={() => setMobileOpen((prev) => !prev)}
           aria-label={mobileOpen ? 'Close menu' : 'Open menu'}
           aria-expanded={mobileOpen}
+          type="button"
           style={{
             color: 'var(--color-text-secondary)',
             width: '44px',
             height: '44px',
             marginRight: '-10px',
+            touchAction: 'manipulation',
+            WebkitTapHighlightColor: 'transparent',
+            position: 'relative',
+            zIndex: 60,
           }}
-          type="button"
         >
-          {mobileOpen ? <X size={22} /> : <Menu size={22} />}
+          {mobileOpen ? (
+            <X size={22} style={{ pointerEvents: 'none' }} />
+          ) : (
+            <Menu size={22} style={{ pointerEvents: 'none' }} />
+          )}
         </button>
       </nav>
 
@@ -116,6 +124,16 @@ export function Header() {
           </div>
         </div>
       )}
+    </>
+  );
+}
+
+export function Header() {
+  return (
+    <header className="border-b relative z-50" style={{ borderColor: 'var(--color-border-subtle)' }}>
+      <Suspense>
+        <HeaderNav />
+      </Suspense>
     </header>
   );
 }
