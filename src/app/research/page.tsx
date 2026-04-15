@@ -15,7 +15,7 @@ export default async function ResearchPage() {
 
   return (
     <section className="py-12">
-      <div className="mx-auto max-w-6xl px-6">
+      <div className="mx-auto max-w-6xl px-4 md:px-6">
         <h1
           className="text-3xl font-bold mb-2"
           style={{

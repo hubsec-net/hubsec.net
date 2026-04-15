@@ -12,7 +12,7 @@ export default async function HomePage() {
     <>
       {/* ── HERO ── */}
       <section className="pt-20 md:pt-28 pb-16">
-        <div className="mx-auto max-w-6xl px-6">
+        <div className="mx-auto max-w-6xl px-4 md:px-6">
           <h1
             className="font-bold mb-6"
             style={{
@@ -42,7 +42,7 @@ export default async function HomePage() {
       {/* ── FEATURED REPORT ── */}
       {latestReport && (
         <section className="pb-20">
-          <div className="mx-auto max-w-6xl px-6">
+          <div className="mx-auto max-w-6xl px-4 md:px-6">
             <Link
               href={`/research/${latestReport.slug}`}
               className="block rounded-lg p-8 md:p-10 group"
@@ -109,7 +109,7 @@ export default async function HomePage() {
 
       {/* ── WHAT WE DO — asymmetric layout ── */}
       <section className="py-16">
-        <div className="mx-auto max-w-6xl px-6">
+        <div className="mx-auto max-w-6xl px-4 md:px-6">
           {/* Research — full width, prominent */}
           <div className="mb-8">
             <Link

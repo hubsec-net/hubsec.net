@@ -43,7 +43,7 @@ const modules = [
 export default function SentinelPage() {
   return (
     <section className="py-12">
-      <div className="mx-auto max-w-6xl px-6">
+      <div className="mx-auto max-w-6xl px-4 md:px-6">
         {/* Hero — opinionated, not generic */}
         <div className="mb-16 max-w-2xl">
           <h1
