@@ -1,0 +1,153 @@
+@media print {
+  @page {
+    margin: 2cm 2.5cm;
+    size: A4;
+  }
+
+  body {
+    background: white;
+    color: #1a1a1a;
+    font-size: 11pt;
+    line-height: 1.5;
+  }
+
+  /* Hide navigation and interactive elements */
+  header,
+  footer,
+  nav,
+  .no-print,
+  button,
+  .copy-button {
+    display: none !important;
+  }
+
+  /* Report header styling */
+  .report-header {
+    border: 2px solid #1a1a1a;
+    padding: 1.5cm;
+    margin-bottom: 1cm;
+    page-break-after: avoid;
+  }
+
+  .report-header h1 {
+    font-size: 18pt;
+    color: #1a1a1a;
+  }
+
+  /* Ensure content is readable */
+  h1, h2, h3, h4 {
+    color: #1a1a1a;
+    page-break-after: avoid;
+  }
+
+  h2 {
+    font-size: 14pt;
+    margin-top: 1cm;
+    border-bottom: 1px solid #ccc;
+    padding-bottom: 0.3cm;
+  }
+
+  h3 {
+    font-size: 12pt;
+  }
+
+  p, li, td, th {
+    color: #333;
+  }
+
+  a {
+    color: #1a1a1a;
+    text-decoration: underline;
+  }
+
+  a[href^="http"]::after {
+    content: " (" attr(href) ")";
+    font-size: 9pt;
+    color: #666;
+  }
+
+  /* Page breaks */
+  .report-section {
+    page-break-inside: avoid;
+  }
+
+  .timeline-section,
+  .fund-flow-section {
+    page-break-before: always;
+  }
+
+  /* Tables */
+  table {
+    border-collapse: collapse;
+    width: 100%;
+  }
+
+  th, td {
+    border: 1px solid #ccc;
+    padding: 6pt 10pt;
+    text-align: left;
+  }
+
+  th {
+    background-color: #f0f0f0;
+    font-weight: 600;
+  }
+
+  /* Code blocks */
+  pre {
+    background: #f5f5f5;
+    border: 1px solid #ddd;
+    padding: 8pt;
+    font-size: 9pt;
+    page-break-inside: avoid;
+    white-space: pre-wrap;
+    word-wrap: break-word;
+  }
+
+  code {
+    font-size: 9pt;
+  }
+
+  /* Severity badges for print */
+  .severity-badge {
+    border: 1px solid currentColor;
+    padding: 1pt 6pt;
+    font-weight: 700;
+    font-size: 9pt;
+  }
+
+  /* Cards and panels */
+  .card, .data-panel {
+    border: 1px solid #ccc;
+    padding: 10pt;
+    margin-bottom: 10pt;
+    background: white;
+  }
+
+  /* TOC sidebar hidden in print */
+  .toc-sidebar {
+    display: none !important;
+  }
+
+  .report-content {
+    width: 100% !important;
+    max-width: 100% !important;
+    margin: 0 !important;
+  }
+
+  /* Footer print info */
+  .report-footer-print {
+    display: block;
+    margin-top: 1cm;
+    padding-top: 0.5cm;
+    border-top: 1px solid #ccc;
+    font-size: 9pt;
+    color: #666;
+  }
+
+  /* Images */
+  img, svg {
+    max-width: 100%;
+    page-break-inside: avoid;
+  }
+}

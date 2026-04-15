@@ -1,26 +1,226 @@
 @import "tailwindcss";
 
+/* ══════════════════════════════════════════════
+   HUBSEC DESIGN SYSTEM — CSS Custom Properties
+   ══════════════════════════════════════════════ */
+
 :root {
-  --background: #ffffff;
-  --foreground: #171717;
+  /* ── FOUNDATION ── */
+  --color-bg-primary: #0A0E17;
+  --color-bg-secondary: #111827;
+  --color-bg-tertiary: #1A2035;
+  --color-bg-surface: #0F1420;
+
+  /* ── TEXT ── */
+  --color-text-primary: #E8ECF4;
+  --color-text-secondary: #8B95A8;
+  --color-text-tertiary: #5A6478;
+  --color-text-inverse: #0A0E17;
+
+  /* ── ACCENT: COLD CYAN ── */
+  --color-accent-primary: #00D4AA;
+  --color-accent-hover: #00F0C0;
+  --color-accent-muted: rgba(0, 212, 170, 0.12);
+  --color-accent-border: rgba(0, 212, 170, 0.25);
+
+  /* ── ACCENT: WARM (CTAs, status, secondary emphasis) ── */
+  --color-accent-warm: #FF8C42;
+  --color-accent-warm-hover: #FFA060;
+  --color-accent-warm-muted: rgba(255, 140, 66, 0.12);
+
+  /* ── SEVERITY SYSTEM ── */
+  --color-severity-critical: #FF3B5C;
+  --color-severity-high: #FF8C42;
+  --color-severity-medium: #FFD166;
+  --color-severity-low: #00D4AA;
+  --color-severity-info: #5B8DEF;
+
+  /* ── BORDERS & DIVIDERS ── */
+  --color-border-subtle: rgba(255, 255, 255, 0.06);
+  --color-border-default: rgba(255, 255, 255, 0.10);
+  --color-border-strong: rgba(255, 255, 255, 0.16);
+
+  /* ── STATUS ── */
+  --color-status-live: #00D4AA;
+  --color-status-frozen: #FF3B5C;
+  --color-status-investigating: #FFD166;
+
+  /* ── TYPE SCALE ── */
+  --font-size-xs: 0.75rem;
+  --font-size-sm: 0.875rem;
+  --font-size-base: 1rem;
+  --font-size-lg: 1.125rem;
+  --font-size-xl: 1.5rem;
+  --font-size-2xl: 2rem;
+  --font-size-3xl: 2.5rem;
+  --font-size-display: 3.5rem;
+
+  /* ── LINE HEIGHTS ── */
+  --leading-tight: 1.2;
+  --leading-normal: 1.6;
+  --leading-relaxed: 1.8;
+
+  /* ── LETTER SPACING ── */
+  --tracking-tight: -0.02em;
+  --tracking-normal: 0;
+  --tracking-wide: 0.05em;
+  --tracking-mono: -0.03em;
 }
 
 @theme inline {
-  --color-background: var(--background);
-  --color-foreground: var(--foreground);
-  --font-sans: var(--font-geist-sans);
-  --font-mono: var(--font-geist-mono);
+  --color-bg-primary: var(--color-bg-primary);
+  --color-bg-secondary: var(--color-bg-secondary);
+  --color-bg-tertiary: var(--color-bg-tertiary);
+  --color-bg-surface: var(--color-bg-surface);
+  --color-text-primary: var(--color-text-primary);
+  --color-text-secondary: var(--color-text-secondary);
+  --color-text-tertiary: var(--color-text-tertiary);
+  --color-text-inverse: var(--color-text-inverse);
+  --color-accent-primary: var(--color-accent-primary);
+  --color-accent-hover: var(--color-accent-hover);
+  --color-severity-critical: var(--color-severity-critical);
+  --color-severity-high: var(--color-severity-high);
+  --color-severity-medium: var(--color-severity-medium);
+  --color-severity-low: var(--color-severity-low);
+  --color-severity-info: var(--color-severity-info);
+  --color-accent-warm: var(--color-accent-warm);
+  --color-accent-warm-hover: var(--color-accent-warm-hover);
+  --font-sans: var(--font-inter);
+  --font-mono: var(--font-jetbrains);
 }
 
-@media (prefers-color-scheme: dark) {
-  :root {
-    --background: #0a0a0a;
-    --foreground: #ededed;
-  }
+/* ══════════════════════════════════════════════
+   BASE STYLES
+   ══════════════════════════════════════════════ */
+
+html {
+  scroll-behavior: smooth;
 }
 
 body {
-  background: var(--background);
-  color: var(--foreground);
-  font-family: Arial, Helvetica, sans-serif;
+  background-color: var(--color-bg-primary);
+  color: var(--color-text-primary);
+  font-family: var(--font-inter), -apple-system, BlinkMacSystemFont, sans-serif;
+  font-size: var(--font-size-base);
+  line-height: var(--leading-normal);
 }
+
+/* ── TYPOGRAPHY ── */
+
+h1, h2, h3, h4 {
+  font-family: var(--font-jetbrains), 'SF Mono', 'Fira Code', monospace;
+  line-height: var(--leading-tight);
+  letter-spacing: var(--tracking-mono);
+  color: var(--color-text-primary);
+}
+
+h1 { font-size: var(--font-size-3xl); }
+h2 { font-size: var(--font-size-2xl); }
+h3 { font-size: var(--font-size-xl); }
+
+/* ── LINKS ── */
+
+a {
+  color: var(--color-accent-primary);
+  text-decoration: none;
+  transition: color 0.15s ease;
+}
+
+a:hover {
+  color: var(--color-accent-hover);
+}
+
+/* ── SELECTION ── */
+
+::selection {
+  background-color: rgba(0, 212, 170, 0.25);
+  color: var(--color-text-primary);
+}
+
+/* ── SCROLLBAR ── */
+
+::-webkit-scrollbar {
+  width: 6px;
+}
+
+::-webkit-scrollbar-track {
+  background: var(--color-bg-primary);
+}
+
+::-webkit-scrollbar-thumb {
+  background: var(--color-border-strong);
+  border-radius: 3px;
+}
+
+/* ── CODE ── */
+
+code {
+  font-family: var(--font-jetbrains), 'SF Mono', 'Fira Code', monospace;
+  font-size: 0.9em;
+}
+
+pre {
+  background-color: var(--color-bg-surface);
+  border: 1px solid var(--color-border-default);
+  border-radius: 4px;
+  overflow-x: auto;
+  padding: 1rem;
+  font-size: var(--font-size-sm);
+  line-height: 1.7;
+}
+
+pre code {
+  background: none;
+  padding: 0;
+  font-size: inherit;
+}
+
+/* ── TABLES (report content) ── */
+
+.report-content table {
+  width: 100%;
+  border-collapse: collapse;
+  margin-bottom: 1.5rem;
+  font-size: var(--font-size-sm);
+}
+
+.report-content thead th {
+  text-align: left;
+  padding: 0.5rem 0.75rem;
+  font-family: var(--font-jetbrains), monospace;
+  font-size: var(--font-size-xs);
+  color: var(--color-text-tertiary);
+  font-weight: 600;
+  border-bottom: 1px solid var(--color-border-strong);
+}
+
+.report-content tbody td {
+  padding: 0.5rem 0.75rem;
+  color: var(--color-text-secondary);
+  border-bottom: 1px solid var(--color-border-subtle);
+  vertical-align: top;
+  line-height: 1.5;
+}
+
+.report-content tbody td:first-child {
+  font-family: var(--font-jetbrains), monospace;
+  color: var(--color-text-primary);
+  font-weight: 500;
+  white-space: nowrap;
+}
+
+.report-content tbody td strong {
+  color: var(--color-text-primary);
+}
+
+/* ── VERIFY LINKS ── */
+.verify-link {
+  color: var(--color-text-tertiary);
+  transition: color 150ms;
+}
+.verify-link:hover {
+  color: var(--color-accent-primary);
+}
+
+/* ── PRINT ── */
+@import "../styles/print.css";
