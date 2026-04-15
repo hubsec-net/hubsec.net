@@ -1,34 +1,78 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useCallback, useEffect, Suspense } from 'react';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
-import { Menu, X } from 'lucide-react';
 import { NAV_LINKS } from '@/lib/constants';
 
-export function Header() {
+function MenuIcon() {
+  return (
+    <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true" style={{ pointerEvents: 'none' }}>
+      <line x1="4" y1="6" x2="20" y2="6" />
+      <line x1="4" y1="12" x2="20" y2="12" />
+      <line x1="4" y1="18" x2="20" y2="18" />
+    </svg>
+  );
+}
+
+function CloseIcon() {
+  return (
+    <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true" style={{ pointerEvents: 'none' }}>
+      <line x1="18" y1="6" x2="6" y2="18" />
+      <line x1="6" y1="6" x2="18" y2="18" />
+    </svg>
+  );
+}
+
+function NavLinks({ pathname, onNavigate }: { pathname: string; onNavigate?: () => void }) {
+  return (
+    <>
+      {NAV_LINKS.map((link) => (
+        <Link
+          key={link.href}
+          href={link.href}
+          onClick={onNavigate}
+          style={{
+            fontFamily: 'var(--font-jetbrains), monospace',
+            color: pathname.startsWith(link.href)
+              ? 'var(--color-accent-primary)'
+              : 'var(--color-text-secondary)',
+            letterSpacing: 'var(--tracking-wide)',
+            textTransform: 'uppercase' as const,
+          }}
+        >
+          {link.label}
+        </Link>
+      ))}
+    </>
+  );
+}
+
+function HeaderInner() {
   const [mobileOpen, setMobileOpen] = useState(false);
   const pathname = usePathname();
 
-  // Close menu on route change
+  const toggle = useCallback(() => {
+    setMobileOpen((prev) => !prev);
+  }, []);
+
+  const close = useCallback(() => {
+    setMobileOpen(false);
+  }, []);
+
   useEffect(() => {
     setMobileOpen(false);
   }, [pathname]);
 
-  // Prevent body scroll when menu is open
   useEffect(() => {
-    if (mobileOpen) {
-      document.body.style.overflow = 'hidden';
-    } else {
-      document.body.style.overflow = '';
-    }
+    document.body.style.overflow = mobileOpen ? 'hidden' : '';
     return () => {
       document.body.style.overflow = '';
     };
   }, [mobileOpen]);
 
   return (
-    <header className="border-b relative z-50" style={{ borderColor: 'var(--color-border-subtle)' }}>
+    <>
       <nav className="mx-auto max-w-6xl px-4 md:px-6 py-4 flex items-center justify-between">
         <Link
           href="/"
@@ -42,61 +86,66 @@ export function Header() {
         </Link>
 
         {/* Desktop navigation */}
-        <div className="hidden md:flex items-center gap-8">
-          {NAV_LINKS.map((link) => (
-            <Link
-              key={link.href}
-              href={link.href}
-              className="text-sm transition-colors duration-150"
-              style={{
-                fontFamily: 'var(--font-jetbrains), monospace',
-                color: pathname.startsWith(link.href)
-                  ? 'var(--color-accent-primary)'
-                  : 'var(--color-text-secondary)',
-                letterSpacing: 'var(--tracking-wide)',
-                textTransform: 'uppercase' as const,
-                fontSize: 'var(--font-size-xs)',
-              }}
-            >
-              {link.label}
-            </Link>
-          ))}
+        <div
+          className="hidden md:flex items-center gap-8"
+          style={{ fontSize: 'var(--font-size-xs)' }}
+        >
+          <NavLinks pathname={pathname} />
         </div>
 
-        {/* Mobile menu button — 44px minimum touch target */}
+        {/* Mobile menu button */}
         <button
-          className="md:hidden flex items-center justify-center"
-          onClick={() => setMobileOpen((prev) => !prev)}
-          aria-label={mobileOpen ? 'Close menu' : 'Open menu'}
+          type="button"
+          className="md:hidden"
+          onClick={toggle}
+          aria-label="Toggle menu"
           aria-expanded={mobileOpen}
           style={{
             color: 'var(--color-text-secondary)',
             width: '44px',
             height: '44px',
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
             marginRight: '-10px',
+            WebkitTapHighlightColor: 'transparent',
+            touchAction: 'manipulation',
+            cursor: 'pointer',
+            background: 'none',
+            border: 'none',
+            padding: 0,
+            position: 'relative',
+            zIndex: 60,
           }}
-          type="button"
         >
-          {mobileOpen ? <X size={22} /> : <Menu size={22} />}
+          {mobileOpen ? <CloseIcon /> : <MenuIcon />}
         </button>
       </nav>
 
       {/* Mobile navigation overlay */}
       {mobileOpen && (
         <div
-          className="md:hidden fixed inset-x-0 top-[57px] bottom-0 z-40 border-t"
+          className="md:hidden"
           style={{
-            borderColor: 'var(--color-border-subtle)',
+            position: 'fixed',
+            top: '57px',
+            left: 0,
+            right: 0,
+            bottom: 0,
+            zIndex: 40,
+            borderTop: '1px solid var(--color-border-subtle)',
             backgroundColor: 'var(--color-bg-primary)',
           }}
         >
-          <div className="flex flex-col px-4 py-6 gap-1">
+          <div
+            className="flex flex-col px-4 py-6 gap-1"
+            style={{ fontSize: 'var(--font-size-sm)' }}
+          >
             {NAV_LINKS.map((link) => (
               <Link
                 key={link.href}
                 href={link.href}
-                onClick={() => setMobileOpen(false)}
-                className="py-3 px-2 rounded-lg transition-colors duration-150"
+                onClick={close}
                 style={{
                   fontFamily: 'var(--font-jetbrains), monospace',
                   color: pathname.startsWith(link.href)
@@ -104,10 +153,11 @@ export function Header() {
                     : 'var(--color-text-secondary)',
                   letterSpacing: 'var(--tracking-wide)',
                   textTransform: 'uppercase' as const,
-                  fontSize: 'var(--font-size-sm)',
                   minHeight: '44px',
                   display: 'flex',
                   alignItems: 'center',
+                  padding: '12px 8px',
+                  textDecoration: 'none',
                 }}
               >
                 {link.label}
@@ -116,6 +166,22 @@ export function Header() {
           </div>
         </div>
       )}
+    </>
+  );
+}
+
+export function Header() {
+  return (
+    <header
+      style={{
+        borderBottom: '1px solid var(--color-border-subtle)',
+        position: 'relative',
+        zIndex: 50,
+      }}
+    >
+      <Suspense>
+        <HeaderInner />
+      </Suspense>
     </header>
   );
 }
