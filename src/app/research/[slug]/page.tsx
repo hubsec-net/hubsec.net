@@ -229,7 +229,7 @@ export default async function ReportPage({
 
   return (
     <article className="py-12">
-      <div className="mx-auto max-w-6xl px-6">
+      <div className="mx-auto max-w-6xl px-4 md:px-6">
         <div className="flex gap-12">
           {/* Sidebar TOC (desktop) */}
           <aside className="hidden lg:block w-56 shrink-0">

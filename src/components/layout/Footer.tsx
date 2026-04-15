@@ -7,8 +7,8 @@ export function Footer() {
       className="border-t mt-auto"
       style={{ borderColor: 'var(--color-border-subtle)', backgroundColor: 'var(--color-bg-secondary)' }}
     >
-      <div className="mx-auto max-w-6xl px-6 py-12">
-        <div className="flex flex-col md:flex-row justify-between gap-8">
+      <div className="mx-auto max-w-6xl px-4 md:px-6 py-10 md:py-12">
+        <div className="flex flex-col md:flex-row justify-between gap-10 md:gap-8">
           {/* Left column */}
           <div className="flex flex-col gap-4">
             <span
@@ -24,7 +24,7 @@ export function Footer() {
               Independent security research for the Polkadot ecosystem.
             </p>
             <p
-              className="text-xs font-mono"
+              className="text-xs font-mono break-all"
               style={{ color: 'var(--color-text-tertiary)' }}
             >
               PGP: {PGP_FINGERPRINT}
@@ -39,18 +39,19 @@ export function Footer() {
           </div>
 
           {/* Right column — links */}
-          <div className="flex gap-8">
+          <div className="flex flex-wrap gap-x-8 gap-y-1 md:gap-8">
             {NAV_LINKS.map((link) => (
               <Link
                 key={link.href}
                 href={link.href}
-                className="text-sm transition-colors duration-150"
+                className="transition-colors duration-150 flex items-center"
                 style={{
                   color: 'var(--color-text-secondary)',
                   fontFamily: 'var(--font-jetbrains), monospace',
                   fontSize: 'var(--font-size-xs)',
                   letterSpacing: 'var(--tracking-wide)',
                   textTransform: 'uppercase' as const,
+                  minHeight: '44px',
                 }}
               >
                 {link.label}

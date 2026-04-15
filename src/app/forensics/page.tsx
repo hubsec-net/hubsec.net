@@ -18,7 +18,7 @@ export const metadata: Metadata = {
 export default function ForensicsPage() {
   return (
     <section className="py-12">
-      <div className="mx-auto max-w-6xl px-6">
+      <div className="mx-auto max-w-6xl px-4 md:px-6">
         {/* ── HERO ── */}
         <div className="mb-12 max-w-2xl">
           <div className="flex items-center gap-3 mb-5">
