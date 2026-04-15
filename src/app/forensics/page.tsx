@@ -151,6 +151,44 @@ export default function ForensicsPage() {
           </div>
         </div>
 
+        {/* ── EXPLORER CTA ── */}
+        <div
+          className="rounded-lg p-8 mb-8"
+          style={{
+            backgroundColor: 'var(--color-bg-secondary)',
+            border: '1px solid var(--color-accent-border)',
+          }}
+        >
+          <h3
+            className="text-sm font-semibold mb-2"
+            style={{
+              fontFamily: 'var(--font-jetbrains), monospace',
+              color: 'var(--color-accent-primary)',
+            }}
+          >
+            Try the free Forensic Explorer
+          </h3>
+          <p
+            className="text-sm mb-4"
+            style={{ color: 'var(--color-text-secondary)', lineHeight: 'var(--leading-relaxed)' }}
+          >
+            Our open investigation tool for Polkadot. Advanced forensics features
+            including pattern detection, fund tracing, real-time monitoring, and
+            evidence packaging are coming soon.
+          </p>
+          <Link
+            href="/explorer"
+            className="inline-block px-5 py-2 rounded-lg text-sm font-medium transition-colors duration-150"
+            style={{
+              backgroundColor: 'var(--color-accent-primary)',
+              color: 'var(--color-text-inverse)',
+              fontFamily: 'var(--font-jetbrains), monospace',
+            }}
+          >
+            Open Explorer &rarr;
+          </Link>
+        </div>
+
         {/* ── CTA ── */}
         <div
           className="rounded-lg p-8"
