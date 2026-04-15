@@ -1,15 +1,7 @@
-# HubSec Security Policy
-# https://hubsec.net/.well-known/security.txt
-
 Contact: mailto:security@hubsec.net
+Contact: https://hubsec.net/contact
 Encryption: https://hubsec.net/pgp-key.asc
 Preferred-Languages: en
 Canonical: https://hubsec.net/.well-known/security.txt
-Policy: https://hubsec.net/about
+Policy: https://hubsec.net/disclosure-policy
 Expires: 2027-04-14T00:00:00.000Z
-
-# Responsible Disclosure
-# We appreciate responsible disclosure of security vulnerabilities.
-# Please encrypt your message with our PGP key when reporting sensitive issues.
-# We will acknowledge receipt within 48 hours and aim to provide
-# a substantive response within 5 business days.
