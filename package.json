@@ -9,6 +9,9 @@
     "lint": "eslint"
   },
   "dependencies": {
+    "@polkadot/util": "^14.0.3",
+    "@polkadot/util-crypto": "^14.0.3",
+    "d3": "^7.9.0",
     "gray-matter": "^4.0.3",
     "lucide-react": "^1.8.0",
     "next": "16.2.3",
@@ -20,6 +23,7 @@
   },
   "devDependencies": {
     "@tailwindcss/postcss": "^4",
+    "@types/d3": "^7.4.3",
     "@types/node": "^20",
     "@types/react": "^19",
     "@types/react-dom": "^19",

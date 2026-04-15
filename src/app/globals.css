@@ -65,6 +65,25 @@
   --tracking-normal: 0;
   --tracking-wide: 0.05em;
   --tracking-mono: -0.03em;
+
+  /* ── EXPLORER: FUND FLOW ── */
+  --color-flow-in: #34d399;
+  --color-flow-out: #f87171;
+  --color-flow-self: #94a3b8;
+  --color-flow-xcm: #a78bfa;
+
+  /* ── EXPLORER: GRAPH NODES ── */
+  --color-node-target: #f59e0b;
+  --color-node-exchange: #22d3ee;
+  --color-node-flagged: #f87171;
+  --color-node-treasury: #a78bfa;
+  --color-node-default: #64748b;
+
+  /* ── EXPLORER: RISK SCORE ── */
+  --color-risk-low: #34d399;
+  --color-risk-medium: #f59e0b;
+  --color-risk-high: #f97316;
+  --color-risk-critical: #f87171;
 }
 
 @theme inline {
