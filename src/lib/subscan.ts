@@ -45,10 +45,14 @@ function releaseSlot(): void {
 }
 
 async function subscanFetch<T>(opts: SubscanRequestOptions): Promise<T> {
-  // Call Subscan API directly from the client.
-  // CSP connect-src allows https://*.api.subscan.io.
+  // Route through same-origin proxy to avoid CORS.
+  // Production: Cloudflare Pages Function at functions/api/subscan/[[path]].ts
+  // Local dev: Next.js rewrite in next.config.ts
   const chainConfig = getChain(opts.chain);
-  const url = `${chainConfig.subscanBase}${opts.endpoint}`;
+  const subscanSlug = chainConfig.subscanBase
+    .replace('https://', '')
+    .replace('.api.subscan.io', '');
+  const url = `/api/subscan/${subscanSlug}${opts.endpoint}`;
 
   await waitForSlot();
   try {

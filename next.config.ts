@@ -22,8 +22,21 @@ const nextConfig: NextConfig = {
       },
     ];
   },
-  // API calls go directly to Subscan / Etherscan from the client.
-  // CSP connect-src in public/_headers allows these origins.
+  // Proxy API calls through same-origin to avoid CORS.
+  // In dev: Next.js handles the rewrite below.
+  // In production: Cloudflare Pages Functions in functions/ handle it.
+  async rewrites() {
+    return [
+      {
+        source: '/api/subscan/:chain/:path*',
+        destination: 'https://:chain.api.subscan.io/:path*',
+      },
+      {
+        source: '/api/etherscan',
+        destination: 'https://api.etherscan.io/v2/api',
+      },
+    ];
+  },
 };
 
 export default nextConfig;

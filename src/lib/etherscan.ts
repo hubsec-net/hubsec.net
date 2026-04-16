@@ -38,8 +38,10 @@ async function etherscanFetch<T>(params: Record<string, string>): Promise<T> {
   if (!qs.has('chainid')) qs.set('chainid', '1');
   if (API_KEY) qs.set('apikey', API_KEY);
 
-  // Call Etherscan V2 API directly. CSP connect-src allows https://api.etherscan.io.
-  const url = `https://api.etherscan.io/v2/api?${qs.toString()}`;
+  // Route through same-origin proxy to avoid CORS.
+  // Production: Cloudflare Pages Function at functions/api/etherscan.ts
+  // Local dev: Next.js rewrite in next.config.ts
+  const url = `/api/etherscan?${qs.toString()}`;
 
   await waitForSlot();
   try {
