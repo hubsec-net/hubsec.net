@@ -99,10 +99,10 @@ export default function VerifyPage() {
           >
             <pre style={{ fontFamily: 'var(--font-jetbrains), monospace', fontSize: 'var(--font-size-sm)', color: 'var(--color-text-secondary)' }}>
               <code>{`# Download the report source
-curl -O https://hubsec.net/reports/hyperbridge-2026-04.mdx
+curl -O https://hubsec.net/reports/<report-slug>.mdx
 
 # Compute the SHA-256 hash
-shasum -a 256 hyperbridge-2026-04.mdx | awk '{print $1}'
+shasum -a 256 <report-slug>.mdx | awk '{print $1}'
 
 # Compare the output to the hash in the report footer`}</code>
             </pre>
@@ -211,10 +211,10 @@ shasum -a 256 hyperbridge-2026-04.mdx | awk '{print $1}'
           >
             <pre style={{ fontFamily: 'var(--font-jetbrains), monospace', fontSize: 'var(--font-size-sm)', color: 'var(--color-text-secondary)' }}>
               <code>{`# Download the report source
-curl -O https://hubsec.net/reports/hyperbridge-2026-04.mdx
+curl -O https://hubsec.net/reports/<report-slug>.mdx
 
 # Download the detached signature
-curl -O https://hubsec.net/signatures/hyperbridge-2026-04.sig`}</code>
+curl -O https://hubsec.net/signatures/<report-slug>.sig`}</code>
             </pre>
           </div>
 
@@ -234,7 +234,7 @@ curl -O https://hubsec.net/signatures/hyperbridge-2026-04.sig`}</code>
             style={{ backgroundColor: 'var(--color-bg-surface)', border: '1px solid var(--color-border-subtle)' }}
           >
             <pre style={{ fontFamily: 'var(--font-jetbrains), monospace', fontSize: 'var(--font-size-sm)', color: 'var(--color-text-secondary)' }}>
-              <code>{`gpg --verify hyperbridge-2026-04.sig hyperbridge-2026-04.mdx`}</code>
+              <code>{`gpg --verify <report-slug>.sig <report-slug>.mdx`}</code>
             </pre>
           </div>
 

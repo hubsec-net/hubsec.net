@@ -1,13 +1,7 @@
 import Link from 'next/link';
-import { Badge } from '@/components/ui/Badge';
-import { getReports } from '@/lib/mdx';
-import { formatDate } from '@/lib/utils';
 import { HomeSearch } from '@/components/explorer/HomeSearch';
 
-export default async function HomePage() {
-  const reports = await getReports();
-  const latestReport = reports[0];
-
+export default function HomePage() {
   return (
     <>
       {/* ── HERO ── */}
@@ -135,7 +129,7 @@ export default async function HomePage() {
                   color: 'var(--color-text-primary)',
                 }}
               >
-                Reports
+                Research
               </h3>
               <p
                 className="text-sm mb-4"
@@ -144,8 +138,8 @@ export default async function HomePage() {
                   lineHeight: 'var(--leading-relaxed)',
                 }}
               >
-                Professional security report generation from scan results and
-                forensic investigations. PDF, Markdown, SARIF.
+                On-chain forensic case studies and vulnerability analysis
+                produced entirely with HubSec tooling.
               </p>
               <span
                 className="text-xs"
@@ -162,93 +156,59 @@ export default async function HomePage() {
       </section>
 
       {/* ── CASE STUDIES ── */}
-      {latestReport && (
-        <section className="pb-20">
-          <div className="mx-auto max-w-6xl px-4 md:px-6">
-            <h2
-              className="text-lg font-semibold mb-2"
-              style={{
-                fontFamily: 'var(--font-jetbrains), monospace',
-                color: 'var(--color-text-primary)',
-              }}
-            >
-              Case Studies
-            </h2>
+      <section className="pb-20">
+        <div className="mx-auto max-w-6xl px-4 md:px-6">
+          <h2
+            className="text-lg font-semibold mb-2"
+            style={{
+              fontFamily: 'var(--font-jetbrains), monospace',
+              color: 'var(--color-text-primary)',
+            }}
+          >
+            Case Studies
+          </h2>
+          <p
+            className="text-sm mb-8"
+            style={{
+              color: 'var(--color-text-tertiary)',
+              lineHeight: 'var(--leading-relaxed)',
+            }}
+          >
+            On-chain forensic investigations backed by HubSec tooling.
+          </p>
+
+          <div
+            className="rounded-lg p-8 md:p-10"
+            style={{
+              backgroundColor: 'var(--color-bg-secondary)',
+              border: '1px solid var(--color-border-default)',
+            }}
+          >
             <p
-              className="text-sm mb-8"
+              className="text-base max-w-2xl mb-6"
               style={{
-                color: 'var(--color-text-tertiary)',
+                color: 'var(--color-text-secondary)',
                 lineHeight: 'var(--leading-relaxed)',
               }}
             >
-              Real-world analysis produced using HubSec Forensics methodology,
-              demonstrating how our tools reconstruct and analyze security incidents.
+              Case studies produced using HubSec tooling will be published as
+              our platform comes online. Every HubSec investigation is backed
+              by direct on-chain forensic analysis, not curated public
+              reporting.
             </p>
             <Link
-              href={`/research/${latestReport.slug}`}
-              className="block rounded-lg p-8 md:p-10 group"
+              href="/research"
+              className="text-sm"
               style={{
-                backgroundColor: 'var(--color-bg-secondary)',
-                border: '1px solid var(--color-border-default)',
-                transition: 'border-color 0.15s ease',
+                color: 'var(--color-accent-primary)',
+                fontFamily: 'var(--font-jetbrains), monospace',
               }}
-              onMouseEnter={undefined}
             >
-              <div className="flex flex-wrap items-center gap-3 mb-4">
-                <span
-                  className="text-xs"
-                  style={{
-                    color: 'var(--color-text-tertiary)',
-                    fontFamily: 'var(--font-jetbrains), monospace',
-                  }}
-                >
-                  {formatDate(latestReport.date)}
-                </span>
-                <Badge level={latestReport.classification} />
-              </div>
-              <h3
-                className="text-xl md:text-2xl font-bold mb-3"
-                style={{
-                  fontFamily: 'var(--font-jetbrains), monospace',
-                  color: 'var(--color-text-primary)',
-                }}
-              >
-                {latestReport.title}
-              </h3>
-              <p
-                className="text-sm mb-3"
-                style={{
-                  color: 'var(--color-text-tertiary)',
-                  lineHeight: 'var(--leading-relaxed)',
-                  fontStyle: 'italic',
-                }}
-              >
-                This analysis was produced using HubSec Forensics methodology,
-                demonstrating how our tools reconstruct and analyze security
-                incidents.
-              </p>
-              <p
-                className="text-base max-w-2xl mb-6"
-                style={{
-                  color: 'var(--color-text-secondary)',
-                  lineHeight: 'var(--leading-relaxed)',
-                }}
-              >
-                {latestReport.summary}
-              </p>
-              <span
-                className="text-sm"
-                style={{
-                  color: 'var(--color-accent-primary)',
-                  fontFamily: 'var(--font-jetbrains), monospace',
-                }}
-              >
-                Read the full analysis &rarr;
-              </span>
+              Learn about our standard &rarr;
             </Link>
           </div>
-        </section>
-      )}
+        </div>
+      </section>
     </>
   );
 }
