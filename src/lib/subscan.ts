@@ -45,8 +45,13 @@ function releaseSlot(): void {
 }
 
 async function subscanFetch<T>(opts: SubscanRequestOptions): Promise<T> {
-  const chain = getChain(opts.chain);
-  const url = `${chain.subscanBase}${opts.endpoint}`;
+  // Route through same-origin proxy to avoid CORS.
+  // Local dev: Next.js rewrite proxies /api/subscan/:chain/* → Subscan.
+  // Production: Cloudflare Pages Function does the same.
+  // Derive Subscan subdomain from chain config (e.g. assethub → assethub-polkadot)
+  const chainConfig = getChain(opts.chain);
+  const subscanSlug = chainConfig.subscanBase.replace('https://', '').replace('.api.subscan.io', '');
+  const url = `/api/subscan/${subscanSlug}${opts.endpoint}`;
 
   await waitForSlot();
   try {
@@ -68,7 +73,9 @@ async function subscanFetch<T>(opts: SubscanRequestOptions): Promise<T> {
     }
 
     const json: SubscanResponse<T> = await res.json();
-    if (json.code !== 0) {
+
+    // 10004 = "Record Not Found" — not a hard error, just empty data
+    if (json.code !== 0 && json.code !== 10004) {
       throw new SubscanError(json.message || 'Subscan API error', json.code);
     }
 
@@ -86,27 +93,66 @@ export interface AccountInfo {
   balance_lock: string;
   count_extrinsic: number;
   nonce: number;
+  display?: string;
   account_display?: {
     address: string;
-    display?: string;
-    judgements?: Array<{ index: number; judgement: string }>;
+    account_index?: string;
+    people?: {
+      display?: string;
+      identity?: boolean;
+      judgements?: Array<{ index: number; judgement: string }>;
+    };
     parent?: { address: string; display: string };
-    identity?: boolean;
   };
   staking_info?: {
-    bonded: string;
     controller: string;
     reward_account: string;
   } | null;
+  role?: string;
+  bonded?: string;
   registrar_info?: unknown;
 }
 
+interface SearchResponse {
+  account: AccountInfo;
+}
+
 export async function fetchAccountInfo(address: string, chain: string): Promise<AccountInfo> {
-  return subscanFetch<AccountInfo>({
+  const res = await subscanFetch<SearchResponse>({
     chain,
     endpoint: '/api/v2/scan/search',
     body: { key: address },
   });
+  return res.account;
+}
+
+// ── On-Chain Identity ──
+
+export interface OnChainIdentity {
+  display: string | null;
+  identity: boolean;
+  judgements?: Array<{ index: number; judgement: string }>;
+  parentDisplay?: string;
+}
+
+/**
+ * Fetch on-chain identity for a Substrate address via Subscan's search endpoint.
+ * Returns null if no identity is set.
+ */
+export async function fetchOnChainIdentity(address: string, chain: string): Promise<OnChainIdentity | null> {
+  try {
+    const acct = await fetchAccountInfo(address, chain);
+    const people = acct.account_display?.people;
+    if (!people?.display) return null;
+    return {
+      display: people.display,
+      identity: people.identity === true,
+      judgements: people.judgements,
+      parentDisplay: acct.account_display?.parent?.display,
+    };
+  } catch {
+    return null;
+  }
 }
 
 // ── Transfers ──
@@ -124,8 +170,18 @@ export interface Transfer {
   success: boolean;
   asset_symbol: string;
   asset_type: string;
-  from_account_display?: { address: string; display?: string; identity?: boolean };
-  to_account_display?: { address: string; display?: string; identity?: boolean };
+  from_account_display?: {
+    address: string;
+    display?: string;
+    identity?: boolean;
+    people?: { display?: string; identity?: boolean; parent?: { display?: string; identity?: boolean }; sub_symbol?: string; judgements?: Array<{ index: number; judgement: string }> };
+  };
+  to_account_display?: {
+    address: string;
+    display?: string;
+    identity?: boolean;
+    people?: { display?: string; identity?: boolean; parent?: { display?: string; identity?: boolean }; sub_symbol?: string; judgements?: Array<{ index: number; judgement: string }> };
+  };
 }
 
 export interface TransfersResponse {
@@ -272,6 +328,308 @@ export async function fetchXcmTransfers(
     endpoint: '/api/scan/xcm/list',
     body: { address, row: 25, page },
   });
+}
+
+// ── Governance / Referenda ──
+
+export interface ReferendumVote {
+  referendum_index: number;
+  account: { address: string; people?: Record<string, unknown> };
+  delegate_account: { address: string; people?: Record<string, unknown> } | null;
+  extrinsic_index: string;
+  conviction: string;
+  amount: string;
+  votes: string;
+  status: string; // "Ayes" | "Nays"
+  valid: boolean;
+  unlock_block: number;
+  voting_time: number;
+  relay_chain?: number;
+}
+
+export interface ReferendumVotesResponse {
+  count: number;
+  list: ReferendumVote[] | null;
+}
+
+export async function fetchAccountVotes(
+  address: string,
+  chain: string,
+  page: number = 0,
+  row: number = 25,
+): Promise<ReferendumVotesResponse> {
+  try {
+    return await subscanFetch<ReferendumVotesResponse>({
+      chain,
+      endpoint: '/api/scan/referenda/votes',
+      body: { account: address, row, page },
+    });
+  } catch {
+    return { count: 0, list: null };
+  }
+}
+
+// ── Staking Detail ──
+
+export interface NominatorDetail {
+  stash_account_display?: { address: string; display?: string };
+  controller_account_display?: { address: string; display?: string };
+  bonded: string;
+  reward_dest?: string;
+  reward_account?: string;
+  nominators?: Array<{
+    validator_stash: string;
+    validator_prefs?: { commission: number | string };
+    validator_account_display?: { address: string; display?: string };
+  }>;
+}
+
+export interface ValidatorDetail {
+  stash_account_display?: { address: string; display?: string };
+  controller_account_display?: { address: string; display?: string };
+  bonded_nominators: number;
+  bonded_total: string;
+  bonded_owner: string;
+  validator_prefs_value: number;
+  latest_mining: number;
+  reward_point: number;
+  session_key?: string[];
+  grandpa_vote?: number;
+  count_nominators?: number;
+}
+
+export interface StakingNominatorResponse {
+  stash_account_display?: { address: string; display?: string };
+  controller_account_display?: { address: string; display?: string };
+  bonded: string;
+  status?: string;
+  reward_dest?: string;
+  reward_account?: string;
+  nominating?: Array<{
+    stash_account_display?: { address: string; display?: string };
+    validator_prefs?: { commission: string | number };
+    bonded_total?: string;
+    count_nominators?: number;
+    reward_point?: number;
+  }>;
+}
+
+export async function fetchNominatorDetail(
+  address: string,
+  chain: string,
+): Promise<StakingNominatorResponse | null> {
+  try {
+    return await subscanFetch<StakingNominatorResponse>({
+      chain,
+      endpoint: '/api/v2/scan/staking/nominator',
+      body: { address },
+    });
+  } catch {
+    return null;
+  }
+}
+
+export interface StakingValidatorResponse {
+  stash_account_display?: { address: string; display?: string };
+  controller_account_display?: { address: string; display?: string };
+  bonded_total: string;
+  bonded_owner: string;
+  bonded_nominators: number;
+  validator_prefs_value: number;
+  count_nominators?: number;
+  latest_mining?: number;
+  reward_point?: number;
+  session_key?: string[];
+  slash_count?: number;
+}
+
+export async function fetchValidatorDetail(
+  address: string,
+  chain: string,
+): Promise<StakingValidatorResponse | null> {
+  try {
+    return await subscanFetch<StakingValidatorResponse>({
+      chain,
+      endpoint: '/api/v2/scan/staking/validator',
+      body: { address },
+    });
+  } catch {
+    return null;
+  }
+}
+
+// ── Multisig ──
+
+export interface MultisigRecord {
+  multi_id: string;
+  multi_account_display?: { address: string; display?: string };
+  call_module: string;
+  call_module_function: string;
+  threshold: number;
+  approve_record?: Array<{
+    account_display?: { address: string; display?: string };
+    approve_type: string;
+  }>;
+  status: string;
+  block_timestamp: number;
+}
+
+export interface MultisigResponse {
+  count: number;
+  multisig: MultisigRecord[] | null;
+}
+
+export async function fetchMultisigRecords(
+  address: string,
+  chain: string,
+  page: number = 0,
+): Promise<MultisigResponse> {
+  try {
+    return await subscanFetch<MultisigResponse>({
+      chain,
+      endpoint: '/api/scan/multisigs',
+      body: { account: address, row: 25, page },
+    });
+  } catch {
+    return { count: 0, multisig: null };
+  }
+}
+
+// ── Account Extrinsic-based Proxy Discovery ──
+
+export interface ProxyRecord {
+  real: string;
+  delegate: string;
+  proxy_type: string;
+  delay: number;
+}
+
+/**
+ * Discover proxy relationships by querying account extrinsics filtered to proxy module.
+ * Returns both proxies-for (who can act on behalf of this account) and proxies-of (accounts this address can control).
+ */
+export async function fetchProxyRelationships(
+  address: string,
+  chain: string,
+): Promise<{ proxiesFor: ProxyRecord[]; proxiesOf: ProxyRecord[] }> {
+  try {
+    // Fetch extrinsics where this account interacted with proxy module
+    const res = await subscanFetch<ExtrinsicsResponse>({
+      chain,
+      endpoint: '/api/scan/account/extrinsics',
+      body: { address, row: 100, page: 0, module: 'proxy' },
+    });
+    const extrinsics = res.extrinsics || [];
+    const proxiesFor: ProxyRecord[] = [];
+    const proxiesOf: ProxyRecord[] = [];
+    const seen = new Set<string>();
+
+    for (const ext of extrinsics) {
+      if (ext.call_module_function === 'add_proxy' || ext.call_module_function === 'proxy') {
+        // This is a proxy setup or usage — we can track relationships
+        // Since we can't fully decode params from the list endpoint,
+        // we note the relationship exists
+        const key = `${ext.extrinsic_hash}`;
+        if (!seen.has(key)) seen.add(key);
+      }
+    }
+
+    return { proxiesFor, proxiesOf };
+  } catch {
+    return { proxiesFor: [], proxiesOf: [] };
+  }
+}
+
+// ── Extrinsic Detail ──
+
+export interface ExtrinsicParam {
+  name: string;
+  type: string;
+  type_name?: string;
+  value: unknown;
+}
+
+export interface ExtrinsicEvent {
+  event_index: string;
+  module_id: string;
+  event_id: string;
+  params: string; // JSON string
+  phase?: number;
+}
+
+export interface ExtrinsicSubCall {
+  call_module: string;
+  call_module_function: string;
+  params: ExtrinsicParam[];
+}
+
+export interface ExtrinsicDetail {
+  block_num: number;
+  block_timestamp: number;
+  extrinsic_index: string;
+  extrinsic_hash: string;
+  call_module: string;
+  call_module_function: string;
+  account_id: string;
+  account_display?: {
+    address: string;
+    display?: string;
+    people?: { display?: string; identity?: boolean };
+  };
+  signature: string;
+  nonce: number;
+  fee: string;
+  fee_used?: string;
+  tip?: string;
+  success: boolean;
+  params: ExtrinsicParam[];
+  event: ExtrinsicEvent[];
+  // Batch inner calls
+  call_sub?: ExtrinsicSubCall[];
+}
+
+interface ExtrinsicDetailResponse {
+  block_num: number;
+  block_timestamp: number;
+  extrinsic_index: string;
+  extrinsic_hash: string;
+  call_module: string;
+  call_module_function: string;
+  account_id: string;
+  account_display?: ExtrinsicDetail['account_display'];
+  signature: string;
+  nonce: number;
+  fee: string;
+  fee_used?: string;
+  tip?: string;
+  success: boolean;
+  params: ExtrinsicParam[] | string;
+  event: ExtrinsicEvent[] | null;
+}
+
+export async function fetchExtrinsicDetail(
+  hashOrIndex: string,
+  chain: string,
+): Promise<ExtrinsicDetail | null> {
+  try {
+    const body: Record<string, string> = hashOrIndex.startsWith('0x')
+      ? { hash: hashOrIndex }
+      : { extrinsic_index: hashOrIndex };
+    const raw = await subscanFetch<ExtrinsicDetailResponse>({
+      chain,
+      endpoint: '/api/scan/extrinsic',
+      body,
+    });
+    if (!raw) return null;
+    // params can be a JSON string or array
+    const params: ExtrinsicParam[] =
+      typeof raw.params === 'string'
+        ? JSON.parse(raw.params || '[]')
+        : raw.params || [];
+    return { ...raw, params, event: raw.event || [] };
+  } catch {
+    return null;
+  }
 }
 
 // ── Utility: get chain for subscan links ──

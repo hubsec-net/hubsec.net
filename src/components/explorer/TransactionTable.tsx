@@ -2,9 +2,10 @@
 
 import { useState, useMemo, useCallback } from 'react';
 import type { Transfer } from '@/lib/subscan';
-import { getSubscanTxUrl, getSubscanBlockUrl } from '@/lib/subscan';
+import { getExplorerTxUrl, getExplorerBlockUrl } from '@/lib/explorer-urls';
 import { truncateAddress, timeAgo, formatTimestamp } from '@/lib/explorer-utils';
-import { lookupAddress } from '@/lib/known-addresses';
+import { lookupAddress, isDangerousAddress } from '@/lib/known-addresses';
+import { AddressWithTag } from './AddressTag';
 import { DirectionBadge } from './DirectionBadge';
 import { CopyButton } from '@/components/ui/CopyButton';
 
@@ -18,6 +19,7 @@ interface TransactionTableProps {
   loading: boolean;
   onPageChange: (page: number) => void;
   onAddressClick: (address: string) => void;
+  onExtrinsicClick?: (hashOrIndex: string) => void;
 }
 
 type SortKey = 'time' | 'amount' | 'block';
@@ -40,6 +42,7 @@ export function TransactionTable({
   loading,
   onPageChange,
   onAddressClick,
+  onExtrinsicClick,
 }: TransactionTableProps) {
   const [dirFilter, setDirFilter] = useState<DirectionFilter>('all');
   const [minAmount, setMinAmount] = useState('');
@@ -244,19 +247,23 @@ export function TransactionTable({
             ) : (
               filtered.map((t, i) => {
                 const dir = getDirection(t, targetAddress);
-                const fromTag = lookupAddress(t.from)?.tag;
-                const toTag = lookupAddress(t.to)?.tag;
+                const fromDanger = isDangerousAddress(lookupAddress(t.from));
+                const toDanger = isDangerousAddress(lookupAddress(t.to));
+                const rowDanger = fromDanger || toDanger;
                 return (
                   <tr
                     key={`${t.hash}-${i}`}
-                    style={{ borderBottom: '1px solid var(--color-border-subtle)' }}
+                    style={{
+                      borderBottom: '1px solid var(--color-border-subtle)',
+                      backgroundColor: rowDanger ? 'rgba(220,38,38,0.06)' : undefined,
+                    }}
                   >
                     <td className="py-2 px-2" style={{ color: 'var(--color-text-tertiary)' }} title={formatTimestamp(t.block_timestamp)}>
                       {timeAgo(t.block_timestamp)}
                     </td>
                     <td className="py-2 px-2">
                       <a
-                        href={getSubscanBlockUrl(t.block_num, chain)}
+                        href={getExplorerBlockUrl(t.block_num, chain)}
                         target="_blank"
                         rel="noopener noreferrer"
                         style={{ color: 'var(--color-accent-primary)', fontFeatureSettings: '"tnum"' }}
@@ -266,30 +273,10 @@ export function TransactionTable({
                     </td>
                     <td className="py-2 px-2"><DirectionBadge direction={dir} /></td>
                     <td className="py-2 px-2">
-                      <button
-                        onClick={() => onAddressClick(t.from)}
-                        style={{
-                          color: fromTag ? 'var(--color-accent-primary)' : 'var(--color-text-secondary)',
-                          background: 'none', border: 'none', cursor: 'pointer', padding: 0,
-                          fontFamily: 'inherit', fontSize: 'inherit',
-                        }}
-                        title={t.from}
-                      >
-                        {fromTag || truncateAddress(t.from, 6, 4)}
-                      </button>
+                      <AddressWithTag address={t.from} chain={chain} onClick={onAddressClick} />
                     </td>
                     <td className="py-2 px-2">
-                      <button
-                        onClick={() => onAddressClick(t.to)}
-                        style={{
-                          color: toTag ? 'var(--color-accent-primary)' : 'var(--color-text-secondary)',
-                          background: 'none', border: 'none', cursor: 'pointer', padding: 0,
-                          fontFamily: 'inherit', fontSize: 'inherit',
-                        }}
-                        title={t.to}
-                      >
-                        {toTag || truncateAddress(t.to, 6, 4)}
-                      </button>
+                      <AddressWithTag address={t.to} chain={chain} onClick={onAddressClick} />
                     </td>
                     <td className="py-2 px-2 text-right" style={{ color: 'var(--color-text-primary)', fontFeatureSettings: '"tnum"' }}>
                       {parseFloat(t.amount || '0').toFixed(4).replace(/\.?0+$/, '')}
@@ -297,15 +284,25 @@ export function TransactionTable({
                     <td className="py-2 px-2" style={{ color: 'var(--color-text-tertiary)' }}>{t.asset_symbol || ''}</td>
                     <td className="py-2 px-2">
                       <span className="inline-flex items-center gap-1">
-                        <a
-                          href={getSubscanTxUrl(t.hash, chain)}
-                          target="_blank"
-                          rel="noopener noreferrer"
-                          style={{ color: 'var(--color-accent-primary)' }}
-                          title={t.hash}
-                        >
-                          {t.hash ? truncateAddress(t.hash, 6, 4) : '—'}
-                        </a>
+                        {onExtrinsicClick && t.hash ? (
+                          <button
+                            onClick={() => onExtrinsicClick(t.extrinsic_index || t.hash)}
+                            style={{ color: 'var(--color-accent-primary)', background: 'none', border: 'none', cursor: 'pointer', padding: 0, fontFamily: 'inherit', fontSize: 'inherit' }}
+                            title={`Decode ${t.hash}`}
+                          >
+                            {truncateAddress(t.hash, 6, 4)}
+                          </button>
+                        ) : (
+                          <a
+                            href={getExplorerTxUrl(t.hash, chain)}
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            style={{ color: 'var(--color-accent-primary)' }}
+                            title={t.hash}
+                          >
+                            {t.hash ? truncateAddress(t.hash, 6, 4) : '—'}
+                          </a>
+                        )}
                         {t.hash && <CopyButton text={t.hash} />}
                       </span>
                     </td>

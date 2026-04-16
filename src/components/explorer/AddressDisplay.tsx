@@ -1,7 +1,8 @@
 'use client';
 
+import { useAddressTag } from '@/hooks/useAddressTag';
 import { truncateAddress } from '@/lib/explorer-utils';
-import { lookupAddress, getCategoryColor } from '@/lib/known-addresses';
+import { TagPill } from './AddressTag';
 import { CopyButton } from '@/components/ui/CopyButton';
 
 interface AddressDisplayProps {
@@ -17,44 +18,31 @@ interface AddressDisplayProps {
 
 export function AddressDisplay({
   address,
+  chain = '',
   truncate = true,
   showCopy = true,
   showTag = true,
-  linkToExplorer = false,
   className = '',
   onClick,
 }: AddressDisplayProps) {
-  const known = showTag ? lookupAddress(address) : undefined;
+  const { tag: known } = useAddressTag(address, chain);
   const displayText = truncate ? truncateAddress(address) : address;
 
-  const addressEl = (
+  return (
     <span
       className={`inline-flex items-center gap-1.5 ${className}`}
       style={{ fontFamily: 'var(--font-jetbrains), monospace', fontSize: 'var(--font-size-xs)' }}
     >
-      {known && (
-        <span
-          className="px-1.5 py-0.5 rounded text-xs"
-          style={{
-            backgroundColor: 'rgba(255,255,255,0.06)',
-            color: getCategoryColor(known.category),
-            border: '1px solid var(--color-border-subtle)',
-          }}
-        >
-          {known.tag}
-        </span>
-      )}
       <span
         title={address}
         style={{ color: 'var(--color-text-secondary)', fontFeatureSettings: '"tnum"' }}
-        className={onClick || linkToExplorer ? 'cursor-pointer hover:underline' : ''}
+        className={onClick ? 'cursor-pointer hover:underline' : ''}
         onClick={onClick}
       >
         {displayText}
       </span>
+      {showTag && known && <TagPill tag={known.tag} category={known.category} />}
       {showCopy && <CopyButton text={address} />}
     </span>
   );
-
-  return addressEl;
 }

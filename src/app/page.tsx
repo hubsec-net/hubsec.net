@@ -2,6 +2,7 @@ import Link from 'next/link';
 import { Badge } from '@/components/ui/Badge';
 import { getReports } from '@/lib/mdx';
 import { formatDate } from '@/lib/utils';
+import { HomeSearch } from '@/components/explorer/HomeSearch';
 
 export default async function HomePage() {
   const reports = await getReports();
@@ -35,6 +36,7 @@ export default async function HomePage() {
             Security tooling for blockchain teams and security professionals.
             Scan, investigate, report.
           </p>
+          <HomeSearch />
         </div>
       </section>
 
