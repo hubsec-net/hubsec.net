@@ -58,6 +58,7 @@ function StatCard({ label, value, sub, loading }: StatCardProps) {
 interface StatsGridProps {
   balance: string;
   tokenSymbol: string;
+  chainName: string;
   totalSent: number;
   totalReceived: number;
   txCount: number;
@@ -68,12 +69,19 @@ interface StatsGridProps {
   counterpartyCount: number;
   stakingBonded: string | null;
   stakingStatus: string | null;
+  /** For Ethereum accounts: EOA / Verified / Unverified */
+  contractStatus?: string | null;
   loading?: boolean;
+  /** Number of transfers loaded so far for stats */
+  loadedCount?: number;
+  /** Whether all transfers have been fetched */
+  statsComplete?: boolean;
 }
 
 export function StatsGrid({
   balance,
   tokenSymbol,
+  chainName,
   totalSent,
   totalReceived,
   txCount,
@@ -84,8 +92,15 @@ export function StatsGrid({
   counterpartyCount,
   stakingBonded,
   stakingStatus,
+  contractStatus,
   loading = false,
+  loadedCount,
+  statsComplete = true,
 }: StatsGridProps) {
+  const statsPartial = !statsComplete && (loadedCount ?? 0) > 0;
+  // Determine the 8th card: Staking for Substrate, Account Type for Ethereum
+  const isEthMode = contractStatus !== undefined && contractStatus !== null;
+
   return (
     <div className="grid grid-cols-2 lg:grid-cols-4 gap-3">
       <StatCard
@@ -95,15 +110,15 @@ export function StatsGrid({
         loading={loading}
       />
       <StatCard
-        label="Total Sent"
+        label={`Total Sent (${tokenSymbol})`}
         value={loading ? '' : formatNumber(totalSent.toFixed(2))}
-        sub={tokenSymbol}
+        sub={statsPartial ? `loading full history…` : `on ${chainName}`}
         loading={loading}
       />
       <StatCard
-        label="Total Received"
+        label={`Total Received (${tokenSymbol})`}
         value={loading ? '' : formatNumber(totalReceived.toFixed(2))}
-        sub={tokenSymbol}
+        sub={statsPartial ? `loading full history…` : `on ${chainName}`}
         loading={loading}
       />
       <StatCard
@@ -113,13 +128,13 @@ export function StatsGrid({
         loading={loading}
       />
       <StatCard
-        label="First Seen"
+        label="First Transfer"
         value={loading || !firstSeen ? '—' : timeAgo(firstSeen)}
-        sub={firstSeen ? formatTimestamp(firstSeen) : undefined}
+        sub={firstSeen ? `${formatTimestamp(firstSeen)} · on ${chainName}` : undefined}
         loading={loading}
       />
       <StatCard
-        label="Last Seen"
+        label="Last Transfer"
         value={loading || !lastSeen ? '—' : timeAgo(lastSeen)}
         sub={lastSeen ? formatTimestamp(lastSeen) : undefined}
         loading={loading}
@@ -130,12 +145,24 @@ export function StatsGrid({
         sub="unique addresses"
         loading={loading}
       />
-      <StatCard
-        label="Staking"
-        value={loading ? '' : (stakingStatus || 'None')}
-        sub={stakingBonded ? `Bonded: ${formatNumber(stakingBonded)} ${tokenSymbol}` : undefined}
-        loading={loading}
-      />
+      {isEthMode ? (
+        <StatCard
+          label="Account Type"
+          value={loading ? '' : contractStatus || 'Unknown'}
+          loading={loading}
+        />
+      ) : (
+        <StatCard
+          label="Staking"
+          value={loading ? '' : stakingStatus || 'None'}
+          sub={
+            stakingBonded
+              ? `Bonded: ${formatNumber(stakingBonded)} ${tokenSymbol}`
+              : undefined
+          }
+          loading={loading}
+        />
+      )}
     </div>
   );
 }

@@ -11,6 +11,7 @@
   "dependencies": {
     "@polkadot/util": "^14.0.3",
     "@polkadot/util-crypto": "^14.0.3",
+    "@tanstack/react-query": "^5.99.0",
     "d3": "^7.9.0",
     "gray-matter": "^4.0.3",
     "lucide-react": "^1.8.0",

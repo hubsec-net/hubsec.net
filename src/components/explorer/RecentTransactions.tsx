@@ -1,9 +1,10 @@
 'use client';
 
 import type { Transfer } from '@/lib/subscan';
-import { getSubscanTxUrl } from '@/lib/subscan';
+import { getExplorerTxUrl } from '@/lib/explorer-urls';
 import { truncateAddress, timeAgo, formatTimestamp } from '@/lib/explorer-utils';
-import { lookupAddress } from '@/lib/known-addresses';
+import { lookupAddress, isDangerousAddress } from '@/lib/known-addresses';
+import { AddressWithTag } from './AddressTag';
 import { DirectionBadge } from './DirectionBadge';
 import { CopyButton } from '@/components/ui/CopyButton';
 
@@ -12,6 +13,7 @@ interface RecentTransactionsProps {
   targetAddress: string;
   chain: string;
   onAddressClick: (address: string) => void;
+  onExtrinsicClick?: (hashOrIndex: string) => void;
 }
 
 function getDirection(transfer: Transfer, targetAddress: string): 'in' | 'out' | 'self' {
@@ -20,7 +22,7 @@ function getDirection(transfer: Transfer, targetAddress: string): 'in' | 'out' |
   return 'in';
 }
 
-export function RecentTransactions({ transfers, targetAddress, chain, onAddressClick }: RecentTransactionsProps) {
+export function RecentTransactions({ transfers, targetAddress, chain, onAddressClick, onExtrinsicClick }: RecentTransactionsProps) {
   const recent = transfers.slice(0, 10);
 
   if (recent.length === 0) {
@@ -47,12 +49,14 @@ export function RecentTransactions({ transfers, targetAddress, chain, onAddressC
         <tbody>
           {recent.map((t, i) => {
             const dir = getDirection(t, targetAddress);
-            const fromTag = lookupAddress(t.from)?.tag;
-            const toTag = lookupAddress(t.to)?.tag;
+            const rowDanger = isDangerousAddress(lookupAddress(t.from)) || isDangerousAddress(lookupAddress(t.to));
             return (
               <tr
                 key={`${t.hash}-${i}`}
-                style={{ borderBottom: '1px solid var(--color-border-subtle)' }}
+                style={{
+                  borderBottom: '1px solid var(--color-border-subtle)',
+                  backgroundColor: rowDanger ? 'rgba(220,38,38,0.06)' : undefined,
+                }}
               >
                 <td className="py-2 px-2" style={{ color: 'var(--color-text-tertiary)' }} title={formatTimestamp(t.block_timestamp)}>
                   {timeAgo(t.block_timestamp)}
@@ -61,38 +65,10 @@ export function RecentTransactions({ transfers, targetAddress, chain, onAddressC
                   <DirectionBadge direction={dir} />
                 </td>
                 <td className="py-2 px-2">
-                  <button
-                    onClick={() => onAddressClick(t.from)}
-                    style={{
-                      color: fromTag ? 'var(--color-accent-primary)' : 'var(--color-text-secondary)',
-                      background: 'none',
-                      border: 'none',
-                      cursor: 'pointer',
-                      padding: 0,
-                      fontFamily: 'inherit',
-                      fontSize: 'inherit',
-                    }}
-                    title={t.from}
-                  >
-                    {fromTag || truncateAddress(t.from, 6, 4)}
-                  </button>
+                  <AddressWithTag address={t.from} chain={chain} onClick={onAddressClick} />
                 </td>
                 <td className="py-2 px-2">
-                  <button
-                    onClick={() => onAddressClick(t.to)}
-                    style={{
-                      color: toTag ? 'var(--color-accent-primary)' : 'var(--color-text-secondary)',
-                      background: 'none',
-                      border: 'none',
-                      cursor: 'pointer',
-                      padding: 0,
-                      fontFamily: 'inherit',
-                      fontSize: 'inherit',
-                    }}
-                    title={t.to}
-                  >
-                    {toTag || truncateAddress(t.to, 6, 4)}
-                  </button>
+                  <AddressWithTag address={t.to} chain={chain} onClick={onAddressClick} />
                 </td>
                 <td
                   className="py-2 px-2 text-right"
@@ -105,15 +81,25 @@ export function RecentTransactions({ transfers, targetAddress, chain, onAddressC
                 </td>
                 <td className="py-2 px-2">
                   <span className="inline-flex items-center gap-1">
-                    <a
-                      href={getSubscanTxUrl(t.hash, chain)}
-                      target="_blank"
-                      rel="noopener noreferrer"
-                      style={{ color: 'var(--color-accent-primary)' }}
-                      title={t.hash}
-                    >
-                      {t.hash ? truncateAddress(t.hash, 6, 4) : '—'}
-                    </a>
+                    {onExtrinsicClick && t.hash ? (
+                      <button
+                        onClick={() => onExtrinsicClick(t.extrinsic_index || t.hash)}
+                        style={{ color: 'var(--color-accent-primary)', background: 'none', border: 'none', cursor: 'pointer', padding: 0, fontFamily: 'inherit', fontSize: 'inherit' }}
+                        title={`Decode ${t.hash}`}
+                      >
+                        {truncateAddress(t.hash, 6, 4)}
+                      </button>
+                    ) : (
+                      <a
+                        href={getExplorerTxUrl(t.hash, chain)}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        style={{ color: 'var(--color-accent-primary)' }}
+                        title={t.hash}
+                      >
+                        {t.hash ? truncateAddress(t.hash, 6, 4) : '—'}
+                      </a>
+                    )}
                     {t.hash && <CopyButton text={t.hash} />}
                   </span>
                 </td>

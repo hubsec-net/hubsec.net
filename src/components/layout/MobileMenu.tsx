@@ -46,7 +46,7 @@ export function MobileMenuButton({ menuId }: { menuId: string }) {
     <button
       ref={buttonRef}
       type="button"
-      className="md:hidden"
+      className="flex md:hidden"
       onClick={toggle}
       aria-label="Menu"
       aria-expanded="false"
@@ -55,7 +55,6 @@ export function MobileMenuButton({ menuId }: { menuId: string }) {
         color: 'var(--color-text-secondary)',
         width: '44px',
         height: '44px',
-        display: 'flex',
         alignItems: 'center',
         justifyContent: 'center',
         marginRight: '-10px',

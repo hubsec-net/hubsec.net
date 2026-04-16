@@ -1,32 +1,47 @@
-import { decodeAddress, encodeAddress } from '@polkadot/util-crypto';
-import { hexToU8a, isHex } from '@polkadot/util';
+// Base58 alphabet used by SS58
+const BASE58_ALPHABET = '123456789ABCDEFGHJKLMNPQRSTUVWXYZabcdefghijkmnopqrstuvwxyz';
+const BASE58_SET = new Set(BASE58_ALPHABET);
 
-/** Validate an SS58 address or hex public key */
-export function isValidAddress(input: string): boolean {
-  try {
-    if (isHex(input) && input.length === 66) {
-      // 0x-prefixed 32-byte public key
-      decodeAddress(encodeAddress(hexToU8a(input)));
-      return true;
-    }
-    decodeAddress(input);
-    return true;
-  } catch {
-    return false;
-  }
+/** Check if input is a valid Ethereum address (0x + 40 hex chars) */
+export function isEthereumAddress(input: string): boolean {
+  return /^0x[0-9a-fA-F]{40}$/i.test(input);
 }
 
-/** Convert any valid input to SS58 with a given prefix */
-export function toSS58(input: string, prefix: number = 0): string | null {
-  try {
-    if (isHex(input) && input.length === 66) {
-      return encodeAddress(hexToU8a(input), prefix);
-    }
-    const decoded = decodeAddress(input);
-    return encodeAddress(decoded, prefix);
-  } catch {
-    return null;
+/** Check if input is a valid SS58 substrate address */
+export function isSubstrateAddress(input: string): boolean {
+  if (!input || typeof input !== 'string') return false;
+  // Hex public key: 0x-prefixed, 64 hex chars (32 bytes)
+  if (/^0x[0-9a-fA-F]{64}$/.test(input)) return true;
+  // SS58: must be valid base58 characters, 46-48 chars long
+  if (input.length < 46 || input.length > 48) return false;
+  for (const ch of input) {
+    if (!BASE58_SET.has(ch)) return false;
   }
+  return true;
+}
+
+/** Validate any address format (Ethereum or Substrate) */
+export function isValidAddress(input: string): boolean {
+  if (!input || typeof input !== 'string') return false;
+  return isEthereumAddress(input) || isSubstrateAddress(input);
+}
+
+/** Detect address type from format */
+export function detectAddressType(input: string): 'ethereum' | 'substrate' | 'unknown' {
+  if (isEthereumAddress(input)) return 'ethereum';
+  if (isSubstrateAddress(input)) return 'substrate';
+  return 'unknown';
+}
+
+/**
+ * Normalize address input. For hex keys, returns as-is since we can't
+ * do SS58 encoding without the crypto library. For SS58, passes through.
+ * For Ethereum, passes through as-is (lowercase).
+ */
+export function toSS58(input: string, _prefix: number = 0): string | null {
+  if (!isValidAddress(input)) return null;
+  if (isEthereumAddress(input)) return input.toLowerCase();
+  return input;
 }
 
 /** Truncate an address for inline display: 15kUt2i1...7VGDeMwz */
@@ -44,7 +59,6 @@ export function formatTokenAmount(
   const num = typeof rawAmount === 'string' ? parseFloat(rawAmount) : rawAmount;
   if (isNaN(num)) return '0';
 
-  // Already in human-readable form from Subscan
   const formatted = num.toFixed(decimals).replace(/\.?0+$/, '');
   return symbol ? `${formatted} ${symbol}` : formatted;
 }
