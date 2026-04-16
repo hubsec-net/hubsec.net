@@ -38,8 +38,8 @@ async function etherscanFetch<T>(params: Record<string, string>): Promise<T> {
   if (!qs.has('chainid')) qs.set('chainid', '1');
   if (API_KEY) qs.set('apikey', API_KEY);
 
-  // Proxy through same-origin to avoid CORS
-  const url = `/api/etherscan?${qs.toString()}`;
+  // Call Etherscan V2 API directly. CSP connect-src allows https://api.etherscan.io.
+  const url = `https://api.etherscan.io/v2/api?${qs.toString()}`;
 
   await waitForSlot();
   try {

@@ -1,5 +1,2 @@
 name = "hubsec"
 compatibility_date = "2026-04-14"
-
-[site]
-bucket = "./out"
