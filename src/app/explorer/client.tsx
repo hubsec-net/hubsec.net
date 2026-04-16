@@ -635,7 +635,7 @@ function AccountView({
     if (!isEth) setSelectedExtrinsic(hashOrIndex);
   }, [isEth]);
 
-  const { tag: known } = useAddressTag(address, chain);
+  const { tag: known } = useAddressTag(address, chain, { fetchIdentity: true });
   const people = accountInfo?.account_display?.people;
   const displayName = accountInfo?.display || people?.display || known?.tag;
   const hasIdentity = !!people?.identity;
@@ -1209,35 +1209,43 @@ function ExplorerRouter() {
   const address = searchParams.get('address') || '';
   const chain = searchParams.get('chain') || DEFAULT_CHAIN;
 
-  const updateParams = useCallback(
+  // Navigate by building a fresh URL from current params + changes.
+  // Uses window.location for reliable full navigation in static export.
+  const navigate = useCallback(
     (params: Record<string, string | null>) => {
       const sp = new URLSearchParams(searchParams.toString());
       for (const [k, v] of Object.entries(params)) {
         if (v === null) sp.delete(k);
         else sp.set(k, v);
       }
-      router.push(`/explorer?${sp.toString()}`);
+      const qs = sp.toString();
+      const url = qs ? `/explorer?${qs}` : '/explorer';
+      window.location.assign(url);
     },
-    [searchParams, router],
+    [searchParams],
   );
 
   const handleSearch = useCallback(
     (addr: string, chainOverride?: string) => {
-      updateParams({ address: addr, chain: chainOverride || chain });
+      navigate({ address: addr, chain: chainOverride || chain });
     },
-    [updateParams, chain],
+    [navigate, chain],
   );
 
   const handleChainChange = useCallback(
     (newChain: string) => {
-      updateParams({ chain: newChain });
+      // Chain change is lightweight — use router.push to avoid full reload
+      router.push(`/explorer?${new URLSearchParams({ ...(address ? { address } : {}), chain: newChain }).toString()}`);
     },
-    [updateParams],
+    [router, address],
   );
 
   const handleBack = useCallback(() => {
-    updateParams({ address: null });
-  }, [updateParams]);
+    const sp = new URLSearchParams(searchParams.toString());
+    sp.delete('address');
+    const qs = sp.toString();
+    window.location.assign(qs ? `/explorer?${qs}` : '/explorer');
+  }, [searchParams]);
 
   const handleAddressClick = useCallback(
     (addr: string) => {
@@ -1245,14 +1253,14 @@ function ExplorerRouter() {
       const addrType = detectAddressType(addr);
       const currentConfig = getChain(chain);
       if (addrType === 'ethereum' && !currentConfig.evmCompatible) {
-        updateParams({ address: addr, chain: 'ethereum' });
+        navigate({ address: addr, chain: 'ethereum' });
       } else if (addrType === 'substrate' && isEthereumChain(chain)) {
-        updateParams({ address: addr, chain: 'assethub' });
+        navigate({ address: addr, chain: 'assethub' });
       } else {
-        updateParams({ address: addr });
+        navigate({ address: addr });
       }
     },
-    [updateParams, chain],
+    [navigate, chain],
   );
 
   if (!address) {
