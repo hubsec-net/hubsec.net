@@ -1,6 +1,6 @@
 'use client';
 
-import { useQuery, useQueries } from '@tanstack/react-query';
+import { useQuery } from '@tanstack/react-query';
 import {
   lookupStaticDatabase,
   lookupAddress,
@@ -23,16 +23,20 @@ import { isEthereumChain } from '@/lib/chains';
  * Every component that renders an address should use this hook.
  * One source of truth, universal display.
  */
-export function useAddressTag(address: string, chain: string): {
+export function useAddressTag(address: string, chain: string, options?: { fetchIdentity?: boolean }): {
   tag: KnownAddress | null;
   isLoading: boolean;
 } {
+  const fetchIdentity = options?.fetchIdentity ?? false;
+
   // Layer 1: Static database — instant
   const staticTag = lookupStaticDatabase(address);
 
   // Layer 2: On-chain identity — async, cached
+  // Only enabled when caller explicitly opts in (e.g. main account header).
+  // Table rows and list items should NOT fetch — they rely on Layer 1 + 3.
   const isSubstrate = !!chain && !isEthereumChain(chain);
-  const needsFetch = !staticTag && !!address && isSubstrate;
+  const needsFetch = fetchIdentity && !staticTag && !!address && isSubstrate;
 
   const { data: identity, isLoading } = useQuery({
     queryKey: ['identity', address.toLowerCase(), chain],
@@ -87,28 +91,10 @@ export function useAddressTags(addresses: string[], chain: string): {
   tags: Map<string, KnownAddress>;
   isLoading: boolean;
 } {
-  const isSubstrate = !!chain && !isEthereumChain(chain);
-
-  // Deduplicate and filter to only addresses needing async fetch
-  const toFetch = isSubstrate
-    ? [...new Set(addresses.map(a => a.toLowerCase()))].filter(
-        a => !!a && !lookupStaticDatabase(a) && !lookupAddress(a),
-      )
-    : [];
-
-  const queries = useQueries({
-    queries: toFetch.map(addr => ({
-      queryKey: ['identity', addr, chain],
-      queryFn: () => fetchOnChainIdentity(addr, chain),
-      staleTime: 5 * 60 * 1000,
-      gcTime: 30 * 60 * 1000,
-      retry: 1,
-    })),
-  });
-
-  // Build the result map from all layers
+  // Bulk hook uses Layer 1 (static DB) + Layer 3 (identity cache) only.
+  // No async fetching — too many addresses to fetch individually.
+  // The identity cache is populated by cacheTransferIdentities() when transfers load.
   const tags = new Map<string, KnownAddress>();
-  const anyLoading = queries.some(q => q.isLoading);
 
   for (const addr of addresses) {
     const key = addr.toLowerCase();
@@ -121,21 +107,6 @@ export function useAddressTags(addresses: string[], chain: string): {
       continue;
     }
 
-    // Layer 2: async identity (find in query results)
-    const fetchIdx = toFetch.indexOf(key);
-    if (fetchIdx >= 0 && queries[fetchIdx]?.data?.display) {
-      const identity = queries[fetchIdx].data!;
-      cacheIdentity(addr, identity.display!, identity.identity);
-      tags.set(key, {
-        address: key,
-        tag: identity.display!,
-        category: 'identity',
-        chain,
-        confidence: identity.identity ? 'verified' : 'unconfirmed',
-      });
-      continue;
-    }
-
     // Layer 3: identity cache
     const cached = lookupAddress(addr);
     if (cached) {
@@ -143,7 +114,7 @@ export function useAddressTags(addresses: string[], chain: string): {
     }
   }
 
-  return { tags, isLoading: anyLoading };
+  return { tags, isLoading: false };
 }
 
 // ── Re-export helpers for convenience ──

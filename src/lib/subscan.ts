@@ -1,4 +1,4 @@
-import { getChain, type ChainConfig } from './chains';
+import { getChain } from './chains';
 
 const API_KEY = process.env.NEXT_PUBLIC_SUBSCAN_API_KEY || '';
 
@@ -46,11 +46,12 @@ function releaseSlot(): void {
 
 async function subscanFetch<T>(opts: SubscanRequestOptions): Promise<T> {
   // Route through same-origin proxy to avoid CORS.
-  // Local dev: Next.js rewrite proxies /api/subscan/:chain/* → Subscan.
-  // Production: Cloudflare Pages Function does the same.
-  // Derive Subscan subdomain from chain config (e.g. assethub → assethub-polkadot)
+  // Production: Cloudflare Pages Function at functions/api/subscan/[[path]].ts
+  // Local dev: Next.js rewrite in next.config.ts
   const chainConfig = getChain(opts.chain);
-  const subscanSlug = chainConfig.subscanBase.replace('https://', '').replace('.api.subscan.io', '');
+  const subscanSlug = chainConfig.subscanBase
+    .replace('https://', '')
+    .replace('.api.subscan.io', '');
   const url = `/api/subscan/${subscanSlug}${opts.endpoint}`;
 
   await waitForSlot();

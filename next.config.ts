@@ -22,9 +22,9 @@ const nextConfig: NextConfig = {
       },
     ];
   },
-  // Proxy Subscan API calls through same-origin to avoid CORS.
-  // In dev: Next.js handles the rewrite.
-  // In production: Cloudflare Pages Function at /api/subscan/* handles it.
+  // Proxy API calls through same-origin to avoid CORS.
+  // In dev: Next.js handles the rewrite below.
+  // In production: Cloudflare Pages Functions in functions/ handle it.
   async rewrites() {
     return [
       {

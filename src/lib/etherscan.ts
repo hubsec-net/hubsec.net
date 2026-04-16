@@ -38,7 +38,9 @@ async function etherscanFetch<T>(params: Record<string, string>): Promise<T> {
   if (!qs.has('chainid')) qs.set('chainid', '1');
   if (API_KEY) qs.set('apikey', API_KEY);
 
-  // Proxy through same-origin to avoid CORS
+  // Route through same-origin proxy to avoid CORS.
+  // Production: Cloudflare Pages Function at functions/api/etherscan.ts
+  // Local dev: Next.js rewrite in next.config.ts
   const url = `/api/etherscan?${qs.toString()}`;
 
   await waitForSlot();
