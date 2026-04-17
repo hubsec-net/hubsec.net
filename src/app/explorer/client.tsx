@@ -608,14 +608,19 @@ function AccountView({
   }, [allTransfers, address, nativeSymbol]);
 
   const riskScore: RiskScore = useMemo(() => {
+    // Categorical override (e.g. attacker/scam/flagged) is evaluated inside
+    // computeRiskScore and wins even when transfers haven't loaded yet.
+    const override = computeRiskScore([], accountInfo?.balance || '0', stats.firstSeen, address);
+    if (override.overall === 100) return override;
+
     if (allTransfers.length === 0) return { overall: 0, factors: [] };
     // Only score based on native token transfers to avoid mixing token types
     const nativeTransfers = allTransfers.filter(
       t => !t.asset_symbol || t.asset_symbol === nativeSymbol,
     );
     if (nativeTransfers.length === 0) return { overall: 0, factors: [] };
-    return computeRiskScore(nativeTransfers, accountInfo?.balance || '0', stats.firstSeen);
-  }, [allTransfers, accountInfo, stats.firstSeen, nativeSymbol]);
+    return computeRiskScore(nativeTransfers, accountInfo?.balance || '0', stats.firstSeen, address);
+  }, [allTransfers, accountInfo, stats.firstSeen, nativeSymbol, address]);
 
   // Watch status
   useEffect(() => { setWatched(isWatched(address)); }, [address]);

@@ -1,5 +1,10 @@
 import type { Transfer } from './subscan';
-import { lookupAddress } from './known-addresses';
+import {
+  lookupAddress,
+  lookupStaticDatabase,
+  isDangerousAddress,
+  type AddressCategory,
+} from './known-addresses';
 import { daysSince } from './explorer-utils';
 
 export interface RiskFactor {
@@ -13,11 +18,48 @@ export interface RiskScore {
   factors: RiskFactor[];
 }
 
+const CRITICAL_OVERRIDE_LABELS: Partial<Record<AddressCategory, string>> = {
+  attacker: 'Confirmed exploit attacker',
+  scam: 'Confirmed scam address',
+  flagged: 'Flagged as suspicious',
+};
+
+/**
+ * Critical override: if the address is tagged in the static known-addresses DB
+ * as attacker / scam / flagged, risk is 100/100 regardless of transfer-derived
+ * signals. Any other risk factors are suppressed — the categorical tag is the
+ * final word.
+ */
+function criticalOverride(address: string | undefined): RiskScore | null {
+  if (!address) return null;
+  const known = lookupStaticDatabase(address);
+  if (!known || !isDangerousAddress(known)) return null;
+
+  const label = CRITICAL_OVERRIDE_LABELS[known.category] ?? 'Dangerous address';
+  const description = known.reportDescription
+    || known.description
+    || `${label} — see known-addresses database.`;
+
+  return {
+    overall: 100,
+    factors: [{
+      name: label,
+      score: 100,
+      description,
+    }],
+  };
+}
+
 export function computeRiskScore(
   transfers: Transfer[],
   balance: string,
   firstSeen: number | null,
+  address?: string,
 ): RiskScore {
+  // Categorical override wins over every transfer-derived signal.
+  const override = criticalOverride(address);
+  if (override) return override;
+
   const factors: RiskFactor[] = [];
 
   if (transfers.length === 0) {
