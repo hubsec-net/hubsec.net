@@ -260,9 +260,10 @@ export const KNOWN_ADDRESSES: KnownAddress[] = [
   { address: '0x27ca963c279c93801941e1eb8799c23f407d68e7', tag: 'Snowbridge Gateway', category: 'bridge', chain: 'ethereum', confidence: 'verified' },
   { address: '0xeda338e4dc46038493b885327842fd3e301cab39', tag: 'Snowfork Token', category: 'bridge', chain: 'ethereum', confidence: 'verified' },
 
-  // Hyperbridge
-  { address: '0x6c848caf1f9acef4e1f893d835e7e2fba64c86f66d64', tag: 'Hyperbridge HandlerV1', category: 'bridge', chain: 'ethereum', confidence: 'likely' },
-  { address: '0xfd4186eb434125c8b17be8a5fb80eabe855fb6de', tag: 'Hyperbridge TokenGateway', category: 'bridge', chain: 'ethereum', confidence: 'likely' },
+  // Hyperbridge — verified via /research/hyperbridge-investigation-2026-04
+  { address: '0x6c84edd2a018b1fe2fc93a56066b5c60da4e6d64', tag: 'Hyperbridge HandlerV1', category: 'bridge', chain: 'ethereum', confidence: 'verified', description: 'Hyperbridge ISMP message handler — processes incoming cross-chain messages and verifies proofs.' },
+  { address: '0xfd413e3afe560182c4471f4d143a96d3e259b6de', tag: 'Hyperbridge TokenGateway', category: 'bridge', chain: 'ethereum', confidence: 'verified', description: 'Hyperbridge bridged-asset gateway — manages mint/burn and admin of bridged tokens.' },
+  { address: '0x8d010bf9c26881788b4e6bf5fd1bdc358c8f90b8', tag: 'Bridged DOT (ERC-6160)', category: 'bridge', chain: 'ethereum', confidence: 'verified', description: 'Hyperbridge bridged DOT token on Ethereum.' },
 
   // Wormhole
   { address: '0x98f3c9e6e3face36baad05fe09d375ef1464288b', tag: 'Wormhole Bridge', category: 'bridge', chain: 'ethereum', confidence: 'verified' },
@@ -335,20 +336,6 @@ export const KNOWN_ADDRESSES: KnownAddress[] = [
     reportUrl: '/research/hyperbridge-investigation-2026-04',
     reportDescription: 'Received admin privileges on bridged DOT via forged ChangeAssetAdmin call, then minted 1B DOT.',
   },
-
-  // ═══════════════════════════════════════════════════════════════
-  // POLKADOT — Scam Addresses
-  // ═══════════════════════════════════════════════════════════════
-
-  { address: '1scamPHvFRq3R9DEPyW4c8D9n9sT6rTkYTnt5sqfzCCKRkB', tag: 'Polkadot Support Scam', category: 'scam', chain: 'polkadot', confidence: 'verified', scamType: 'impersonation', reportedDate: '2026-03-15', reportSource: 'Polkadot Anti-Scam Team', reportDescription: 'Impersonation of Polkadot support, phishing for seed phrases', totalVictimsEstimate: 47, totalLossEstimate: '12,500 DOT' },
-  { address: '15airdropScamAddr1234567890abcdefghijklmnopqrst', tag: 'Fake DOT Airdrop', category: 'scam', chain: 'polkadot', confidence: 'verified', scamType: 'fake_airdrop', reportedDate: '2026-02-20', reportSource: 'Polkadot Anti-Scam Team', reportDescription: 'Fake airdrop campaign requiring seed phrase submission', totalVictimsEstimate: 120, totalLossEstimate: '35,000 DOT' },
-
-  // ═══════════════════════════════════════════════════════════════
-  // ETHEREUM — Scam Addresses
-  // ═══════════════════════════════════════════════════════════════
-
-  { address: '0x00000000a991c429389d40ee1e0dab03fea4a3b6', tag: 'Fake Uniswap Airdrop', category: 'scam', chain: 'ethereum', confidence: 'verified', scamType: 'fake_airdrop', reportedDate: '2025-11-10', reportSource: 'Etherscan Community Reports', reportDescription: 'Distributes worthless tokens with phishing approval links' },
-  { address: '0xbad00000000000000000000000000000000000000', tag: 'Address Poisoning Scam', category: 'scam', chain: 'ethereum', confidence: 'verified', scamType: 'phishing', reportedDate: '2026-01-05', reportSource: 'SlowMist', reportDescription: 'Address poisoning attack - sends zero-value transfers to poison transaction history' },
 
   // ═══════════════════════════════════════════════════════════════
   // ETHEREUM — Foundation
