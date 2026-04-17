@@ -337,6 +337,46 @@ export const KNOWN_ADDRESSES: KnownAddress[] = [
     reportDescription: 'Received admin privileges on bridged DOT via forged ChangeAssetAdmin call, then minted 1B DOT.',
   },
 
+  // Hyperbridge ISMP Gateway Exploit — Attacker 2 (April 13, 2026)
+  // See: /research/hyperbridge-investigation-2026-04-attacker-2
+  {
+    address: '0xc0564bba9ba5a9be95ae866429f936012e1bf143',
+    tag: 'Hyperbridge Exploiter 2 (Apr 2026)',
+    category: 'attacker',
+    chain: 'ethereum',
+    confidence: 'verified',
+    description: 'Primary EOA behind the second Hyperbridge ISMP gateway exploit. Siphoned 245.93 WETH (~$573K) directly from the Token Gateway via a forged proof, distributed proceeds across 15 burner wallets, and laundered everything through Tornado Cash.',
+    reportedDate: '2026-04-13',
+    reportSource: 'HubSec Independent Investigation',
+    reportUrl: '/research/hyperbridge-investigation-2026-04-attacker-2',
+    reportDescription: 'Forged ISMP proof via TokenGateway.onAccept() path to extract 245.93 WETH. Fanned out to 15 burner wallets in equal 16.39 ETH splits, all forwarded to Tornado Cash. Struck 53 minutes before the DOT-minting exploit.',
+    totalLossEstimate: '$573,327 (attacker extraction) / $572,790 (to Tornado Cash)',
+  },
+  {
+    address: '0x53bb42f337d86e785ba855cf763eb40acbdb1618',
+    tag: 'Hyperbridge Exploit Contract 1 (Apr 2026 Attacker 2)',
+    category: 'attacker',
+    chain: 'ethereum',
+    confidence: 'verified',
+    description: 'First exploit contract deployed by Hyperbridge Attacker 2. Self-destructed within the exploit transaction to erase its bytecode.',
+    reportedDate: '2026-04-13',
+    reportSource: 'HubSec Independent Investigation',
+    reportUrl: '/research/hyperbridge-investigation-2026-04-attacker-2',
+    reportDescription: 'Deployed and self-destructed in the exploit transaction. Bytecode no longer on-chain, but internal transactions remain traceable via transaction receipts.',
+  },
+  {
+    address: '0xccd363e1a098558b17431b934fffac9906855a5d',
+    tag: 'Hyperbridge Exploit Contract 2 / WETH Receiver (Apr 2026 Attacker 2)',
+    category: 'attacker',
+    chain: 'ethereum',
+    confidence: 'verified',
+    description: 'Second exploit contract. Received 245.93 WETH directly from the Hyperbridge Token Gateway, then split funds across 15 burner wallets before self-destructing.',
+    reportedDate: '2026-04-13',
+    reportSource: 'HubSec Independent Investigation',
+    reportUrl: '/research/hyperbridge-investigation-2026-04-attacker-2',
+    reportDescription: 'Received the 245.93 WETH extraction, distributed to 15 burner wallets in equal 16.39 ETH splits, tipped BuilderNet 0.01 ETH, then SELFDESTRUCT.',
+  },
+
   // ═══════════════════════════════════════════════════════════════
   // ETHEREUM — Foundation
   // ═══════════════════════════════════════════════════════════════
