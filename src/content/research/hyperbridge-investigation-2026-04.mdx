@@ -1,0 +1,179 @@
+---
+slug: hyperbridge-investigation-2026-04
+title: "Hyperbridge Token Gateway Exploit: Independent On-Chain Investigation"
+date: "2026-04-17"
+author: HubSec
+category: investigation
+categoryLabel: Independent Investigation
+classification: critical
+tags:
+  - hyperbridge
+  - polkadot
+  - bridge-exploit
+  - forensics
+status: published
+reportId: HUB-INV-2026-04-17
+summary: "On April 13, 2026, at 03:55:23 UTC, an attacker exploited four compounding vulnerabilities in the Hyperbridge ISMP gateway on Ethereum. The attacker forged a cross-chain proof, hijacked admin privileges on Hyperbridge's bridged DOT token contract, minted one billion unbacked DOT tokens, and swapped them for 108.2 ETH through decentralized exchanges."
+---
+
+## Summary
+
+On April 13, 2026, at 03:55:23 UTC, an attacker exploited four compounding vulnerabilities in the Hyperbridge ISMP gateway on Ethereum. The attacker forged a cross-chain proof, hijacked admin privileges on Hyperbridge's bridged DOT token contract, minted one billion unbacked DOT tokens, and swapped them for 108.2 ETH through decentralized exchanges. The entire attack executed in a single atomic transaction.
+
+HubSec conducted an independent on-chain investigation of this incident. All figures in this report were derived from direct blockchain queries across six EVM chains. No data was sourced from news articles, press releases, or third-party analysis.
+
+The attacker realized approximately $272,000 in spendable funds, all of which has been sent to Tornado Cash. The attacker's wallets are now empty. Hyperbridge has separately reported approximately $2.5 million in total protocol losses, reflecting incentive pool drains across four chains. The gap between these two figures is explained by the difference between attacker-side proceeds and victim-side replacement costs.
+
+## Scope
+
+This investigation covers the attacker cluster originating from address `0xC513E4f5D7a93A1Dd5B7C4D9f6cC2F52d2F1F8E7`. Fund traces were executed across Ethereum, Arbitrum, Polygon, Base, BNB Chain, and Optimism. Entity clustering identified three addresses belonging to the attacker. Current on-chain balances were verified for all cluster members across all six chains.
+
+## Attacker Cluster
+
+The investigation identified three addresses operating as a single entity:
+
+| Address | Role | Notes |
+|---------|------|-------|
+| `0xC513...F8E7` | Primary EOA | Funded via Railgun shielded pools. 37 days old at time of exploit. |
+| `0x518A...8f26` | Master contract | Deployed within the exploit transaction. Orchestrated the attack sequence. |
+| `0x31a1...a9ab` | Helper contract | Deployed within the exploit transaction. Became the admin of the bridged DOT token. |
+
+The primary EOA was funded through Railgun and Synapse Bridge. Multiple test contract deployments in the weeks prior to the attack confirmed the exploit path before execution.
+
+## Exploit Mechanism
+
+The attack targeted four Hyperbridge contracts on Ethereum:
+
+| Contract | Address | Function |
+|----------|---------|----------|
+| HandlerV1 | `0x6C84eDd2A018b1fe2Fc93a56066B5C60dA4E6D64` | Processes incoming cross-chain messages. Contains the proof verification logic. |
+| TokenGateway | `0xFd413e3AFe560182C4471F4d143A96d3e259B6dE` | Manages minting and burning of bridged assets. Holds admin control. |
+| Bridged DOT (ERC-6160) | `0x8d010bf9C26881788b4e6bf5Fd1bdC358c8F90b8` | The bridged DOT token on Ethereum. Grants unrestricted minting rights to its admin. |
+
+The exploit transaction (`0x240aeb9a8b2aabf64ed8e1e480d3e7be140cf530dc1e5606cb16671029401109`) at block 24,868,295 executed the following sequence:
+
+1. The attacker's master contract deployed a helper contract in the same transaction.
+
+2. The helper contract called `HandlerV1.handlePostRequests()` with a forged Merkle Mountain Range proof. The proof bypassed verification because the verifier did not enforce that `leaf_index` must be less than `leafCount`. By submitting `leafCount = 1` and `leaf_index = 1`, the `CalculateRoot()` function skipped incorporating the actual request commitment into the root computation. Any message content passed verification against any historical overlay root.
+
+3. The forged message carried a `ChangeAssetAdmin` action directed at TokenGateway. The gateway's authorization check only validated the `request.source` field against the expected Hyperbridge governance identifier. Because the attacker controlled the forged leaf content, the source field matched. The full `authenticate(request)` modifier, which was applied to asset-transfer paths, was missing from the governance action path. Additionally, `challengePeriod` was set to zero, removing any delay-based safety window.
+
+4. TokenGateway executed `changeAdmin()` on the Bridged DOT contract, transferring admin and minting privileges to the helper contract.
+
+5. The helper contract minted 1,000,000,000 DOT (approximately 2,800 times the legitimate circulating supply of roughly 356,000 tokens).
+
+6. The minted DOT was approved to the Odos Router and swapped through Uniswap V4, yielding 108.206143512481490001 ETH.
+
+7. ETH flowed back through the contract chain: Odos Router to helper contract to master contract to attacker EOA.
+
+Total gas cost: 0.000339 ETH.
+
+The same TokenGateway contract managed all bridged parachain assets, including DOT, ARGN, MANTA, and CERE. The attacker also minted approximately 999 billion ARGN tokens and targeted MANTA and CERE in the same transaction, though MEV bots partially intercepted proceeds from the latter two.
+
+## Fund Flow
+
+### Ethereum (where the value lived)
+
+The investigation traced 94 hops on Ethereum. The attacker's gross flow on Ethereum was approximately $1.33 billion received and $1.33 billion sent. This figure reflects the nominal value of the minted DOT tokens routing through DEX pools. The net native ETH extracted was approximately $112, because the bulk of value entered and exited through the same DEX round-trip.
+
+The real payoff exited as ETH aggregated at the primary EOA. The primary EOA sent $272,174 to the Tornado Cash Router across nine separate transactions.
+
+### Other chains
+
+Activity on BNB Chain (93 hops), Base (11 hops), Arbitrum (2 hops), Polygon (2 hops), and Optimism was limited to small-value gas-token movements between cluster wallets. No significant extraction pattern was detected on these chains.
+
+Sixteen token symbols across these chains could not be priced by the investigation pipeline: =Freedom of Money, AIG, AIRA, ALIGN, ARGN, BEAR, DOG, EVM, LAMB276, Olaf, QAI, R2, ST, WAR, WL, and a Chinese-language token. These contributed transaction volume but are excluded from USD totals.
+
+## Current Holdings
+
+A live balance snapshot was taken for all three cluster addresses across all six chains. The cluster holds $49 in priced assets. All meaningful value has been moved to Tornado Cash or spent on gas.
+
+The cluster is empty. There is no hidden inventory.
+
+## Loss Reconciliation
+
+Three different figures describe this incident, and all three are correct for their respective measurement frames:
+
+| Measurement | Figure | What it represents |
+|-------------|--------|--------------------|
+| Attacker realized proceeds | ~$272,174 | Spendable USD sent to Tornado Cash. This is what the attacker actually pocketed. |
+| Attacker unrealized holdings | ~$49 | What remains on-cluster across six chains. Confirmed empty. |
+| Nominal forgery damage | ~$1.32 billion | 1 billion DOT minted at spot price. This is the supply-inflation hole the protocol must absorb, not attacker proceeds. |
+| Protocol-reported loss | ~$2.5 million | Hyperbridge's official figure (April 15 update), described as "losses from incentive pools across Ethereum, Base, BNB Chain, and Arbitrum." |
+
+The gap between the attacker-realized figure ($272K) and the protocol-reported figure ($2.5M) is not hiding in attacker wallets. The holdings snapshot confirms the cluster is emptied. The gap reflects the difference between what the attacker pocketed and what Hyperbridge must spend to restore incentive pool reserves, cover liquidity provider losses, and make users whole. These are different ledgers measuring different things.
+
+## Risk Assessment
+
+The investigation assigned a risk score of 100/100 (Critical) to the primary EOA, based on three independent signals:
+
+- Known attacker label (confidence 0.95): The address is present in HubSec's label database as a confirmed exploit operator.
+- Young wallet with high activity (severity 25): 37 days old at time of exploit, 70+ transactions. Active wallets under 90 days with significant volume are anomalous.
+- Tornado Cash interaction (severity 55): Nine separate sends to the Tornado Cash Router.
+
+## Triage of Related Anomaly
+
+During the investigation, address `0x7ac05401b1a3ab595a8d557b84d9cd852931cb19` was flagged as receiving 14.5 million DOT across 27 bridge inbounds over approximately six months.
+
+A separate investigation was run on this address. The result: 909 hops, $0 net extraction, risk score 25/100 (Low). The address exhibits a classic exchange or market-maker deposit pattern with a mix of 53, 100, 1,000, and 8-million-DOT transactions distributed over months. It shares zero cluster overlap with the attacker. This address is not part of the exploit.
+
+## Methodology
+
+This investigation was produced entirely from direct on-chain queries. Data sources:
+
+- Etherscan V2 API (all six EVM chains via unified endpoint with chain ID parameter)
+- CoinGecko API (spot token pricing)
+- Live `get_balance` calls (current holdings verification)
+
+Analysis methods:
+
+- Multi-chain scope discovery via parallel chain queries
+- BFS-based fund tracing with hop classification (DEX, bridge, mixer, exchange)
+- Net flow extraction analysis (total received minus total sent per chain)
+- Entity clustering via sibling-walking and knowledge-base label matching
+- Bridge event detection via generic bridge descriptor walking (Transfer-from-zero pattern for mint detection)
+- Protocol drain detection (outflows from scoped contracts to cluster addresses)
+- DEX swap-pair attribution (cluster to router to cluster with priced output counted as extraction)
+- Current holdings snapshot via live balance queries plus trace-derived token balances
+
+No data in this report was sourced from news articles, CertiK alerts, BlockSec reports, or Hyperbridge's official communications. The protocol-reported $2.5M figure is cited for reconciliation context only.
+
+### Known Limitations
+
+- Token pricing uses current spot rates, not historical prices at the time of each transaction. For an incident three days old, the impact is minimal. For older incidents, this would introduce material error.
+- Sixteen token symbols across five chains could not be priced and are excluded from USD totals.
+- The transaction window was capped at 5,000 transactions per address per chain. High-volume wallets may have activity beyond this window.
+- The investigation measures attacker-side proceeds. Victim-side replacement costs, LP losses, and protocol infrastructure damage are outside this scope.
+
+### Confidence
+
+High for attacker-realized proceeds ($272K via Tornado Cash, verified to individual transactions). High for cluster emptiness ($49 remaining, verified via live balance queries). High for forgery detection (1B DOT Transfer-from-zero event at block 24,868,295). Moderate for the statement that "the $2.5M gap is victim-side." This conclusion is inferred from the empty-cluster finding and the absence of unaccounted outflows, but HubSec cannot independently verify Hyperbridge's internal accounting methodology because no public post-mortem has been released.
+
+## Address Reference
+
+### Attacker Cluster
+
+```
+0xC513E4f5D7a93A1Dd5B7C4D9f6cC2F52d2F1F8E7    Primary EOA
+0x518AB393c3F42613D010b54A9dcBe211E3d48f26    Master contract (deployed in exploit tx)
+0x31a165a956842aB783098641dB25C7a9067ca9AB    Helper contract (deployed in exploit tx)
+```
+
+### Hyperbridge Infrastructure (Ethereum)
+
+```
+0x6C84eDd2A018b1fe2Fc93a56066B5C60dA4E6D64    HandlerV1 (proof verification)
+0xFd413e3AFe560182C4471F4d143A96d3e259B6dE    TokenGateway (asset admin management)
+0x8d010bf9C26881788b4e6bf5Fd1bdC358c8F90b8    Bridged DOT (ERC-6160 token)
+```
+
+### Exploit Transaction
+
+```
+0x240aeb9a8b2aabf64ed8e1e480d3e7be140cf530dc1e5606cb16671029401109
+Block 24,868,295 | April 13, 2026, 03:55:23 UTC
+```
+
+---
+
+*HubSec is a blockchain security research firm. This report is provided for informational purposes. All on-chain data is publicly verifiable. For questions, contact security@hubsec.net.*

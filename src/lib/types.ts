@@ -1,6 +1,6 @@
 export type SeverityLevel = 'critical' | 'high' | 'medium' | 'low' | 'info';
 
-export type ReportCategory = 'post-mortem' | 'vulnerability-research' | 'advisory';
+export type ReportCategory = 'post-mortem' | 'vulnerability-research' | 'advisory' | 'investigation';
 
 export interface ReportMeta {
   slug: string;

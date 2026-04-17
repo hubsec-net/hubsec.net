@@ -1,25 +1,35 @@
 import { Badge } from '@/components/ui/Badge';
 import { formatDate } from '@/lib/utils';
-import type { SeverityLevel } from '@/lib/types';
+import type { SeverityLevel, ReportCategory } from '@/lib/types';
 
 interface ReportHeaderProps {
   title: string;
   date: string;
   classification: SeverityLevel;
   category: string;
+  reportCategory?: ReportCategory;
   status: string;
   reportId: string;
 }
+
+const REPORT_TYPE_LABELS: Record<ReportCategory, string> = {
+  'post-mortem': 'HubSec Post-Mortem Report',
+  'vulnerability-research': 'HubSec Vulnerability Research',
+  'advisory': 'HubSec Advisory',
+  'investigation': 'HubSec Investigation Report',
+};
 
 export function ReportHeader({
   title,
   date,
   classification,
   category,
+  reportCategory = 'post-mortem',
   status,
   reportId,
 }: ReportHeaderProps) {
   const formattedDate = formatDate(date);
+  const headerLabel = REPORT_TYPE_LABELS[reportCategory];
 
   return (
     <div
@@ -37,7 +47,7 @@ export function ReportHeader({
           letterSpacing: 'var(--tracking-wide)',
         }}
       >
-        HubSec Post-Mortem Report
+        {headerLabel}
       </p>
       <div
         className="mb-6"

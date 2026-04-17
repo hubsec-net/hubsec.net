@@ -1,12 +1,17 @@
 import Link from 'next/link';
 import type { Metadata } from 'next';
+import { getReports } from '@/lib/mdx';
+import { formatDate } from '@/lib/utils';
+import { Badge } from '@/components/ui/Badge';
 
 export const metadata: Metadata = {
   title: 'Research',
   description: 'On-chain forensic case studies and vulnerability analysis produced with HubSec tooling.',
 };
 
-export default function ResearchPage() {
+export default async function ResearchPage() {
+  const reports = await getReports();
+
   return (
     <section className="py-12">
       <div className="mx-auto max-w-3xl px-4 md:px-6">
@@ -58,96 +63,91 @@ export default function ResearchPage() {
             >
               This means fewer publications, but every one carries direct
               evidentiary weight: transaction-level tracing, fund flow
-              reconstruction, and detection signatures derived from our own
+              reconstruction, and cluster attribution derived from our own
               analysis. Quality over volume.
             </p>
           </div>
         </div>
 
-        {/* What to expect */}
-        <div className="mb-12">
-          <h2
-            className="text-lg font-semibold mb-4"
-            style={{
-              fontFamily: 'var(--font-jetbrains), monospace',
-              color: 'var(--color-text-primary)',
-            }}
-          >
-            What to Expect
-          </h2>
-          <div className="space-y-4">
-            <p
+        {/* Published reports */}
+        {reports.length > 0 && (
+          <div className="mb-12">
+            <h2
+              className="text-lg font-semibold mb-4"
               style={{
-                color: 'var(--color-text-secondary)',
-                lineHeight: 'var(--leading-relaxed)',
+                fontFamily: 'var(--font-jetbrains), monospace',
+                color: 'var(--color-text-primary)',
               }}
             >
-              Each published case study will include:
-            </p>
-            <ul
-              className="ml-6 list-disc space-y-2"
-              style={{ color: 'var(--color-text-secondary)' }}
-            >
-              <li style={{ lineHeight: 'var(--leading-relaxed)' }}>
-                Full attack timeline reconstructed from on-chain data
-              </li>
-              <li style={{ lineHeight: 'var(--leading-relaxed)' }}>
-                Fund flow graphs traced through HubSec Forensics
-              </li>
-              <li style={{ lineHeight: 'var(--leading-relaxed)' }}>
-                Detection signatures and Sentinel rule mappings
-              </li>
-              <li style={{ lineHeight: 'var(--leading-relaxed)' }}>
-                Cryptographic verification &mdash; content hashes and PGP
-                signatures for every report
-              </li>
+              Published
+            </h2>
+            <ul className="space-y-4">
+              {reports.map((report) => (
+                <li
+                  key={report.slug}
+                  className="rounded-lg p-5"
+                  style={{
+                    backgroundColor: 'var(--color-bg-surface)',
+                    border: '1px solid var(--color-border-default)',
+                  }}
+                >
+                  <Link
+                    href={`/research/${report.slug}`}
+                    className="block"
+                  >
+                    <div className="flex items-center gap-3 mb-2">
+                      <Badge level={report.classification} />
+                      <span
+                        className="text-xs uppercase"
+                        style={{
+                          color: 'var(--color-text-tertiary)',
+                          fontFamily: 'var(--font-jetbrains), monospace',
+                          letterSpacing: 'var(--tracking-wide)',
+                        }}
+                      >
+                        {report.categoryLabel}
+                      </span>
+                      <span
+                        className="text-xs ml-auto"
+                        style={{
+                          color: 'var(--color-text-tertiary)',
+                          fontFamily: 'var(--font-jetbrains), monospace',
+                        }}
+                      >
+                        {formatDate(report.date)}
+                      </span>
+                    </div>
+                    <h3
+                      className="text-base font-semibold mb-2"
+                      style={{
+                        fontFamily: 'var(--font-jetbrains), monospace',
+                        color: 'var(--color-text-primary)',
+                        lineHeight: 'var(--leading-tight)',
+                      }}
+                    >
+                      {report.title}
+                    </h3>
+                    <p
+                      className="text-sm"
+                      style={{
+                        color: 'var(--color-text-secondary)',
+                        lineHeight: 'var(--leading-relaxed)',
+                      }}
+                    >
+                      {report.summary}
+                    </p>
+                  </Link>
+                </li>
+              ))}
             </ul>
           </div>
-        </div>
-
-        {/* Coming soon */}
-        <div
-          className="rounded-lg p-8"
-          style={{
-            backgroundColor: 'var(--color-bg-secondary)',
-            border: '1px solid var(--color-border-default)',
-          }}
-        >
-          <p
-            className="text-base mb-4"
-            style={{
-              color: 'var(--color-text-secondary)',
-              lineHeight: 'var(--leading-relaxed)',
-            }}
-          >
-            Case studies produced using HubSec tooling will be published as our
-            platform comes online. Every HubSec investigation is backed by
-            direct on-chain forensic analysis, not curated public reporting.
-          </p>
-          <p
-            className="text-sm"
-            style={{
-              color: 'var(--color-text-tertiary)',
-              lineHeight: 'var(--leading-relaxed)',
-            }}
-          >
-            Sign up to be notified when our first tool-backed investigation is
-            published &mdash;{' '}
-            <Link
-              href="/contact"
-              style={{ color: 'var(--color-accent-primary)' }}
-            >
-              contact us
-            </Link>
-            .
-          </p>
-        </div>
+        )}
 
         {/* Verification link */}
         <div className="mt-12 pt-8" style={{ borderTop: '1px solid var(--color-border-subtle)' }}>
           <p className="text-sm" style={{ color: 'var(--color-text-tertiary)', lineHeight: 'var(--leading-relaxed)' }}>
-            When reports are published, each will include SHA-256 content hashes
-            and detached PGP signatures for independent verification.{' '}
+            Each report includes a SHA-256 content hash and a detached PGP
+            signature for independent verification.{' '}
             <Link
               href="/verify"
               style={{ color: 'var(--color-accent-primary)', fontFamily: 'var(--font-jetbrains), monospace' }}
