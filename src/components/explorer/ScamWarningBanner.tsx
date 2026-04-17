@@ -1,5 +1,6 @@
 'use client';
 
+import Link from 'next/link';
 import { type KnownAddress, type AddressCategory } from '@/lib/known-addresses';
 
 interface ScamWarningBannerProps {
@@ -142,6 +143,30 @@ export function ScamWarningBanner({ knownAddress: ka }: ScamWarningBannerProps) 
                 <span style={{ color: borderColor, fontWeight: 600 }}>{ka.totalVictimsEstimate.toLocaleString()}</span>
               </span>
             )}
+          </div>
+        )}
+
+        {/* Prominent report CTA — internal HubSec investigation */}
+        {ka.reportUrl && ka.reportUrl.startsWith('/') && (
+          <div
+            className="mt-2 pt-2 text-xs"
+            style={{
+              borderTop: `1px solid ${borderColor}30`,
+              fontFamily: 'var(--font-jetbrains), monospace',
+            }}
+          >
+            <Link
+              href={ka.reportUrl}
+              style={{
+                color: borderColor,
+                fontWeight: 600,
+                display: 'inline-flex',
+                alignItems: 'center',
+                gap: 4,
+              }}
+            >
+              Read full investigation &rarr;
+            </Link>
           </div>
         )}
       </div>

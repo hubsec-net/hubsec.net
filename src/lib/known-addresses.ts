@@ -296,6 +296,46 @@ export const KNOWN_ADDRESSES: KnownAddress[] = [
   { address: '0xba214c1c1928a32bffe790263e38b4af9bfcd659', tag: 'Euler Finance Exploiter', category: 'attacker', chain: 'ethereum', confidence: 'verified', description: 'Flash loan attack on Euler Finance lending protocol', reportedDate: '2023-03-13', reportSource: 'Euler Finance' },
   { address: '0xc5135671895a70da7ced0e11391896dd1af76668', tag: 'Hyperbridge Attacker', category: 'attacker', chain: 'ethereum', confidence: 'verified', description: 'Exploited vulnerability in Hyperbridge token gateway', reportedDate: '2025-10-15', reportSource: 'Polytope Labs' },
 
+  // Hyperbridge ISMP Gateway Exploit — April 13, 2026
+  // See: /research/hyperbridge-investigation-2026-04
+  {
+    address: '0xc513e4f5d7a93a1dd5b7c4d9f6cc2f52d2f1f8e7',
+    tag: 'Hyperbridge Exploiter (Apr 2026)',
+    category: 'attacker',
+    chain: 'ethereum',
+    confidence: 'verified',
+    description: 'Primary EOA behind the Hyperbridge ISMP gateway exploit. Minted ~1B unbacked DOT via a forged Merkle Mountain Range proof and laundered ~$272K through Tornado Cash.',
+    reportedDate: '2026-04-13',
+    reportSource: 'HubSec Independent Investigation',
+    reportUrl: '/research/hyperbridge-investigation-2026-04',
+    reportDescription: 'Forged cross-chain proof, hijacked admin on bridged DOT contract, minted 1B DOT, swapped for 108.2 ETH, laundered via Tornado Cash.',
+    totalLossEstimate: '$2,500,000 (protocol) / $272,174 (attacker proceeds)',
+  },
+  {
+    address: '0x518ab393c3f42613d010b54a9dcbe211e3d48f26',
+    tag: 'Hyperbridge Exploit Contract (Master)',
+    category: 'attacker',
+    chain: 'ethereum',
+    confidence: 'verified',
+    description: 'Master contract deployed within the exploit transaction. Orchestrated the Hyperbridge ISMP gateway attack sequence.',
+    reportedDate: '2026-04-13',
+    reportSource: 'HubSec Independent Investigation',
+    reportUrl: '/research/hyperbridge-investigation-2026-04',
+    reportDescription: 'Deployed and destroyed in the exploit transaction. Orchestrated the forged proof submission and DEX swap.',
+  },
+  {
+    address: '0x31a165a956842ab783098641db25c7a9067ca9ab',
+    tag: 'Hyperbridge Exploit Contract (Helper)',
+    category: 'attacker',
+    chain: 'ethereum',
+    confidence: 'verified',
+    description: 'Helper contract deployed within the exploit transaction. Became admin of the bridged DOT token and executed the 1B-token mint.',
+    reportedDate: '2026-04-13',
+    reportSource: 'HubSec Independent Investigation',
+    reportUrl: '/research/hyperbridge-investigation-2026-04',
+    reportDescription: 'Received admin privileges on bridged DOT via forged ChangeAssetAdmin call, then minted 1B DOT.',
+  },
+
   // ═══════════════════════════════════════════════════════════════
   // POLKADOT — Scam Addresses
   // ═══════════════════════════════════════════════════════════════
