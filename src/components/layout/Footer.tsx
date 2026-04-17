@@ -70,11 +70,27 @@ export function Footer() {
           </p>
         </div>
 
-        {/* Copyright */}
-        <div className="mt-6">
+        {/* Copyright + legal links */}
+        <div className="mt-6 flex flex-col gap-2 md:flex-row md:items-center md:justify-between">
           <p className="text-xs" style={{ color: 'var(--color-text-tertiary)' }}>
             &copy; {new Date().getFullYear()} HubSec. All rights reserved.
           </p>
+          <div className="flex flex-wrap gap-x-4 gap-y-1">
+            {[
+              { label: 'Privacy', href: '/privacy' },
+              { label: 'Terms', href: '/terms' },
+              { label: 'Security', href: '/security' },
+            ].map((link) => (
+              <Link
+                key={link.href}
+                href={link.href}
+                className="text-xs transition-colors duration-150"
+                style={{ color: 'var(--color-text-tertiary)' }}
+              >
+                {link.label}
+              </Link>
+            ))}
+          </div>
         </div>
       </div>
     </footer>
