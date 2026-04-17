@@ -1,0 +1,201 @@
+---
+slug: hyperbridge-investigation-2026-04-attacker-2
+title: "Hyperbridge Token Gateway Exploit: Second Attacker Investigation"
+date: "2026-04-17"
+author: HubSec
+category: investigation
+categoryLabel: Independent Investigation
+classification: critical
+tags:
+  - hyperbridge
+  - polkadot
+  - bridge-exploit
+  - forensics
+status: published
+reportId: HUB-INV-2026-04-17-2
+summary: "A separate attacker in the same Hyperbridge ISMP gateway exploit siphoned 245.93 WETH ($573,000) directly from the Token Gateway contract using two self-destructing exploit contracts, distributed the proceeds across 15 burner wallets in equal 16.39 ETH batches, and sent everything to Tornado Cash. This attacker struck 53 minutes before the DOT-minting attack covered in the first investigation."
+---
+
+## Summary
+
+On April 13, 2026, the Hyperbridge Token Gateway on Ethereum was exploited by multiple independent attackers. HubSec's [first investigation](/research/hyperbridge-investigation-2026-04) covered the attacker who minted 1 billion bridged DOT tokens and extracted approximately $272,000 via Tornado Cash. This second investigation covers a separate attacker who siphoned 245.93 WETH ($573,000) from the same Token Gateway contract using a different extraction method and a more sophisticated laundering structure.
+
+This attacker deployed two exploit contracts, drained WETH from the Token Gateway in a single transaction, distributed the proceeds across 15 burner wallets in equal 16.39 ETH batches, and sent everything to Tornado Cash. Both exploit contracts self-destructed within the same transaction to erase the on-chain code footprint.
+
+All figures in this report were derived from direct blockchain queries. The fund trace was reconstructed from internal transaction records, which survive contract destruction because they are stored in transaction receipts rather than contract state.
+
+## Scope
+
+This investigation covers the attacker cluster originating from address `0xc0564bBA9bA5A9bE95AE866429F936012E1bF143` and the self-destructed exploit contract `0xccd363e1a098558b17431b934fffac9906855a5d`. Fund traces were executed on Ethereum. The 15 downstream burner wallets were traced forward to their terminal destinations.
+
+## Attacker Cluster
+
+| Address | Role | Status |
+|---------|------|--------|
+| `0xc0564bBA9bA5A9bE95AE866429F936012E1bF143` | Primary EOA | Active. 4 days old at time of exploit. 2 transactions total. |
+| `0x53bb42f337d86e785ba855cf763eb40acbdb1618` | Exploit contract 1 | Self-destructed in exploit transaction. |
+| `0xccd363e1a098558b17431b934fffac9906855a5d` | Exploit contract 2 (WETH receiver) | Self-destructed in exploit transaction. Received 245.93 WETH. |
+
+The primary EOA deployed both contracts and triggered the exploit in a single transaction. Both contracts executed SELFDESTRUCT after completing their operations, erasing their bytecode from on-chain state. The EOA itself performed only two transactions in its entire history: the exploit transaction and no other activity.
+
+## Exploit Mechanism
+
+This attacker exploited the same root vulnerability as the first attacker: the missing bounds check in HandlerV1's `VerifyProof()` function, which allowed forged ISMP proofs to pass verification. However, the extraction path was different.
+
+The first attacker (covered in HubSec's [prior report](/research/hyperbridge-investigation-2026-04)) used the forged proof to call `handleChangeAssetAdmin()` on TokenGateway, hijack admin privileges on the Bridged DOT token contract, mint 1 billion DOT, and swap them for ETH through DEX routers.
+
+This attacker used the forged proof to call through the `TokenGateway.onAccept()` path and siphon 245.93 WETH directly from the gateway's Wrapped Ether holdings. No token minting was involved. The extraction was a direct value transfer from the gateway contract to the attacker's exploit contract.
+
+The exploit transaction occurred at block 24,868,029, approximately 266 blocks (roughly 53 minutes) before the first attacker's DOT minting transaction at block 24,868,295. This attacker struck first.
+
+## Fund Flow
+
+The entire fund flow occurred within a single atomic transaction on Ethereum.
+
+**Step 1: WETH extraction.** 245.930356583188974044 WETH ($573,633) transferred from Wrapped Ether to exploit contract `0xccd3...5a5d` via the Token Gateway.
+
+**Step 2: Builder tip.** 0.01 ETH sent from `0xccd3...5a5d` to BuilderNet (block builder tip for transaction inclusion priority).
+
+**Step 3: Distribution to 15 burner wallets.** The remaining 245.92 ETH was split into 15 equal portions of 16.394690438879264936 ETH each, sent to 15 fresh addresses:
+
+| # | Burner Wallet | Amount |
+|---|--------------|--------|
+| 1 | `0x87897355DDdc65336C0583C8f40060C93c5Ee2d1` | 16.3947 ETH |
+| 2 | `0x7F5E98c3FAdA21561405b97be16a70FC1237006c` | 16.3947 ETH |
+| 3 | `0x4CfAB0E8A6B981051B9c3883A7ECc722AD51715C` | 16.3947 ETH |
+| 4 | `0x04D39514593a442c6711a542D447937691C9d396` | 16.3947 ETH |
+| 5 | `0x17b0644387CA4bd238C5F7a5af593740CE3d244b` | 16.3947 ETH |
+| 6 | `0x641b74A3917BfaACCd339e4d8a48e52e93DFdAE9` | 16.3947 ETH |
+| 7 | `0x022eA452301d970A9AC7AC1465f819d38c4535F3` | 16.3947 ETH |
+| 8 | `0xcf3cf94b...5ABA5F8A3` | 16.3947 ETH |
+| 9 | `0x1BD69916...22FB079DC` | 16.3947 ETH |
+| 10 | `0x85D7d70D...61751007e` | 16.3947 ETH |
+| 11 | `0x68f4B347...D7E2Ce394` | 16.3947 ETH |
+| 12 | `0xcF61b616...b0133441c` | 16.3947 ETH |
+| 13 | `0x6b16b774...26d6250D6` | 16.3947 ETH |
+| 14 | `0xdf8470C0...3997e4a8E` | 16.3947 ETH |
+| 15 | `0x789C3Db9...2Caab2cA9` | 16.3947 ETH |
+
+4 wei of dust was also sent to the first burner wallet.
+
+**Step 4: Contract self-destruction.** Both exploit contracts (`0x53bb...1618` and `0xccd3...5a5d`) executed SELFDESTRUCT, erasing their bytecode.
+
+**Step 5: Tornado Cash.** Each burner wallet subsequently forwarded its 16.39 ETH to the Tornado Cash Router (`0xd90e...f31b`) in gradual sends.
+
+**Accounting check:** 15 &times; 16.3947 = 245.92 ETH distributed + 0.01 ETH builder tip = 245.93 ETH total. Every wei from the original extraction is accounted for.
+
+## Loss Figures
+
+| Measurement | Figure |
+|-------------|--------|
+| Extracted from Token Gateway | 245.93 WETH ($573,327 at spot) |
+| Sent to Tornado Cash | $572,790 |
+| Builder tip | 0.01 ETH ($23) |
+| Remaining in burner wallets | ~$72 (gas dust across 15 wallets) |
+| Remaining in exploit contracts | $0 (self-destructed) |
+| Remaining in primary EOA | $16 (gas dust) |
+
+The attacker realized approximately $573,000 in total extraction, virtually all of which has been sent to Tornado Cash. The cluster is functionally empty.
+
+## Comparison with First Attacker
+
+| | Attacker 1 (`0xC513...F8E7`) | Attacker 2 (`0xc056...f143`) |
+|---|---|---|
+| Exploit path | `handleChangeAssetAdmin()` | `onAccept()` |
+| What was taken | Minted 1B DOT, swapped for ETH | Siphoned 245.93 WETH directly |
+| Extraction value | ~$272,000 | ~$573,000 |
+| Block | 24,868,295 | 24,868,029 (53 min earlier) |
+| Wallet age | 37 days, 70 transactions | 4 days, 2 transactions |
+| Laundering | 9 direct sends to Tornado Cash from primary EOA | 15 burner wallets, equal 16.39 ETH splits, all to Tornado Cash |
+| Contract cleanup | Exploit contracts left alive on-chain | Both contracts self-destructed |
+| Operational sophistication | Moderate | High |
+
+The second attacker was more sophisticated. The 4-day-old wallet with only 2 transactions, the self-destructing contracts, the 15-wallet fan-out with equal splits, and striking first (53 minutes before the DOT mint) all indicate a more operationally disciplined actor.
+
+Whether these are two independent attackers who discovered the same vulnerability, or the same actor using different wallets and methods, cannot be determined from on-chain data alone. There is no common funding source between the two clusters, no shared burner wallets, and no temporal correlation in wallet creation. Entity resolution produced no link between them.
+
+## Combined Attacker-Side Extraction (Both Reports)
+
+| Attacker | Extracted | Sent to Tornado Cash |
+|----------|-----------|---------------------|
+| Attacker 1 (`0xC513...F8E7`) | ~$272,000 | $272,174 |
+| Attacker 2 (`0xc056...f143`) | ~$573,000 | $572,790 |
+| Earlier test hack (uninvestigated) | ~$12,000 | Unknown |
+| **Combined confirmed** | **~$857,000** | **$844,964** |
+
+Hyperbridge's official April 15 update reported approximately $2.5 million in total losses, described as "losses from incentive pools across Ethereum, Base, BNB Chain, and Arbitrum." The combined attacker-side extraction from both HubSec investigations accounts for $845,000 of that figure. The remaining $1.65 million represents either additional exploitation paths not yet investigated, incentive pool replacement costs on the victim side, or both.
+
+## Technical Note: Tracing Self-Destructed Contracts
+
+The exploit contracts in this attack self-destructed after execution. This erases the contract's bytecode and balance from on-chain state. Standard block explorer APIs (Etherscan's `txlist` endpoint) return no transaction history for destroyed contracts.
+
+This investigation was possible because internal transaction records survive contract destruction. Internal transactions are stored in transaction receipts, which are part of the block's permanent record, not in contract state. By querying Etherscan's internal transaction endpoint for the destroyed contract address, the full fund flow (245.93 WETH in, 15 &times; 16.39 ETH out to burner wallets) was recoverable.
+
+Self-destructing exploit contracts are a deliberate anti-forensics technique. The attacker erases the contract code (preventing source analysis) and the contract's normal transaction history (preventing standard API-based tracing). The technique is effective against casual inspection but does not defeat internal transaction analysis.
+
+## Risk Assessment
+
+The primary EOA received a risk score of 60/100 (Medium), based on one signal: the wallet was 4 days old with 2 transactions. The self-destructed exploit contract could not be profiled (no code, no transaction history in standard APIs, risk score 0/100 before override).
+
+The flow-imbalance override elevated the score: $573K received versus $0 sent from the trigger address indicates extreme anomaly. The downstream burner wallets were all flagged as `downstream_of_trigger` and their Tornado Cash sends were detected.
+
+## Methodology
+
+All data was obtained through direct blockchain queries via Etherscan V2 API on Ethereum. The investigation used internal transaction endpoints to recover fund flows from the self-destructed exploit contract. Forward tracing from the 15 burner wallets confirmed Tornado Cash as the terminal destination for all extracted funds.
+
+No data was sourced from news articles, press releases, or third-party analysis.
+
+### Known Limitations
+
+- Token pricing uses current spot rates, not historical prices at the time of the exploit.
+- The investigation does not cover the $12,000 MANTA/CERE test hack reported by other sources, as the attacker address for that incident has not been independently verified.
+- Entity resolution between the two attacker clusters (this report and the prior report) found no link. This does not rule out coordination; it means no on-chain evidence of coordination was found.
+- One downstream address (`0xdadb...3711`) expanded the trace scope significantly (10,000+ hops), likely a high-volume infrastructure address (DEX router or exchange) that a burner wallet interacted with. This address's holdings and activity are not attributed to the attacker.
+
+## Address Reference
+
+### Attacker Cluster
+
+```
+0xc0564bBA9bA5A9bE95AE866429F936012E1bF143    Primary EOA
+0x53bb42f337d86e785ba855cf763eb40acbdb1618    Exploit contract 1 (SELF-DESTRUCTED)
+0xccd363e1a098558b17431b934fffac9906855a5d    Exploit contract 2 (SELF-DESTRUCTED, received WETH)
+```
+
+### Burner Wallets (all forwarded to Tornado Cash)
+
+```
+0x87897355DDdc65336C0583C8f40060C93c5Ee2d1
+0x7F5E98c3FAdA21561405b97be16a70FC1237006c
+0x4CfAB0E8A6B981051B9c3883A7ECc722AD51715C
+0x04D39514593a442c6711a542D447937691C9d396
+0x17b0644387CA4bd238C5F7a5af593740CE3d244b
+0x641b74A3917BfaACCd339e4d8a48e52e93DFdAE9
+0x022eA452301d970A9AC7AC1465f819d38c4535F3
+0xcf3cf94b...5ABA5F8A3
+0x1BD69916...22FB079DC
+0x85D7d70D...61751007e
+0x68f4B347...D7E2Ce394
+0xcF61b616...b0133441c
+0x6b16b774...26d6250D6
+0xdf8470C0...3997e4a8E
+0x789C3Db9...2Caab2cA9
+```
+
+### Hyperbridge Infrastructure (Ethereum)
+
+```
+0xFd413e3AFe560182C4471F4d143A96d3e259B6dE    TokenGateway (source of siphoned WETH)
+0x6C84eDd2A018b1fe2Fc93a56066B5C60dA4E6D64    HandlerV1 (proof verification)
+```
+
+### Exploit Transaction
+
+```
+0xeff151ef58d57d6523874a7b97344fcd1ce3c7c6880cfc26a93da17f82062d59
+Block 24,868,029 | April 13, 2026 (approximately 53 minutes before the DOT minting exploit)
+```
+
+---
+
+*HubSec is a blockchain security research firm. This report is provided for informational purposes. All on-chain data is publicly verifiable. For questions, contact security@hubsec.net.*
