@@ -168,8 +168,18 @@ export function ComparisonView({ addressA, chainA, onAddressClick, onClose }: Pr
   const chainConfigB = getChain(chainB);
   const statsA = useMemo(() => computeStats(dataA.transfers, addressA, chainConfigA.tokenSymbol), [dataA.transfers, addressA, chainConfigA.tokenSymbol]);
   const statsB = useMemo(() => computeStats(dataB.transfers, addressB, chainConfigB.tokenSymbol), [dataB.transfers, addressB, chainConfigB.tokenSymbol]);
-  const riskA = useMemo(() => dataA.transfers.length ? computeRiskScore(dataA.transfers, dataA.accountInfo?.balance || '0', statsA.firstSeen) : { overall: 0, factors: [] }, [dataA.transfers, dataA.accountInfo, statsA.firstSeen]);
-  const riskB = useMemo(() => dataB.transfers.length ? computeRiskScore(dataB.transfers, dataB.accountInfo?.balance || '0', statsB.firstSeen) : { overall: 0, factors: [] }, [dataB.transfers, dataB.accountInfo, statsB.firstSeen]);
+  const riskA = useMemo(() => {
+    const override = computeRiskScore([], dataA.accountInfo?.balance || '0', statsA.firstSeen, addressA);
+    if (override.overall === 100) return override;
+    if (!dataA.transfers.length) return { overall: 0, factors: [] };
+    return computeRiskScore(dataA.transfers, dataA.accountInfo?.balance || '0', statsA.firstSeen, addressA);
+  }, [dataA.transfers, dataA.accountInfo, statsA.firstSeen, addressA]);
+  const riskB = useMemo(() => {
+    const override = computeRiskScore([], dataB.accountInfo?.balance || '0', statsB.firstSeen, addressB);
+    if (override.overall === 100) return override;
+    if (!dataB.transfers.length) return { overall: 0, factors: [] };
+    return computeRiskScore(dataB.transfers, dataB.accountInfo?.balance || '0', statsB.firstSeen, addressB);
+  }, [dataB.transfers, dataB.accountInfo, statsB.firstSeen, addressB]);
 
   return (
     <div>
